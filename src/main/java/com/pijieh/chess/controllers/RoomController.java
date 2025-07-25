@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.google.gson.Gson;
+import com.pijieh.chess.business.ChessRoomManager;
 import com.pijieh.chess.database.ChessDatabase;
 import com.pijieh.chess.models.CreateRoomForm;
 import com.pijieh.chess.models.JoinRoomForm;
@@ -34,7 +36,10 @@ public class RoomController {
     private final static Logger logger = LoggerFactory.getLogger(RoomController.class);
 
     @Autowired
-    ChessDatabase dataSource;
+    ChessDatabase database;
+
+    @Autowired
+    ChessRoomManager chessRoomManager;
 
     @GetMapping("/create-room")
     public String createRoom() {
@@ -48,22 +53,16 @@ public class RoomController {
 
     @PostMapping("/create-room")
     public ResponseEntity<String> createRoomSession(@RequestBody CreateRoomForm createForm) {
-        final String gameId = Long.toHexString(UUID.randomUUID().getMostSignificantBits());
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        try (Connection conn = dataSource.getConnection();
-                PreparedStatement stmt = conn
-                        .prepareStatement("INSERT INTO games (game_id, game_owner) VALUES (?, ?)")) {
-            stmt.setString(1, gameId);
-            stmt.setString(2, createForm.getName());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            logger.error("", e);
+        Optional<String> gameId = chessRoomManager.createRoom(createForm.getName());
+
+        if (gameId.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        final String body = gson.toJson(Map.of("id", gameId));
+        final String body = gson.toJson(Map.of("id", gameId.get()));
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 
@@ -71,22 +70,15 @@ public class RoomController {
     public ResponseEntity<String> joinRoomSession(@RequestBody JoinRoomForm joinForm) {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        try (Connection conn = dataSource.getConnection();
-                PreparedStatement stmt = conn
-                        .prepareStatement("SELECT game_id, game_owner FROM games WHERE game_id = ? LIMIT 1")) {
-            stmt.setString(1, joinForm.getGameId());
-            ResultSet rs = stmt.executeQuery();
 
-            if (!rs.next()) {
-                rs.close();
-                stmt.close();
-                conn.close();
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch (SQLException e) {
-            logger.error("", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        Optional<String> gameId = chessRoomManager.joinRoom(joinForm.getGameId(),
+                joinForm.getName());
+
+        if (gameId.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+
+        final String body = gson.toJson(Map.of("id", gameId.get()));
+        return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 }

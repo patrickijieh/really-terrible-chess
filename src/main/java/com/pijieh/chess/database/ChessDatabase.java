@@ -1,6 +1,8 @@
 package com.pijieh.chess.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -14,6 +16,13 @@ import com.mchange.v2.c3p0.DataSources;
 
 public final class ChessDatabase {
 
+    public enum SessionCode {
+        SQL_ERROR,
+        SESSION_CREATED,
+        SESSION_FOUND,
+        SESSION_NOT_FOUND
+    }
+
     private DataSource dataSource;
     private static final Logger logger = LoggerFactory.getLogger(ChessDatabase.class);
 
@@ -25,7 +34,7 @@ public final class ChessDatabase {
         setup();
     }
 
-    public Connection getConnection() throws SQLException {
+    private Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
@@ -40,5 +49,51 @@ public final class ChessDatabase {
         stmt.close();
         conn.close();
         logger.info("Successfully created chess database table.");
+    }
+
+    public SessionCode createSession(String gameId, String owner) {
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn
+                        .prepareStatement("""
+                                INSERT INTO games
+                                (game_id, game_owner)
+                                VALUES
+                                (?, ?)
+                                """)) {
+            stmt.setString(1, gameId);
+            stmt.setString(2, owner);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("", e);
+            return SessionCode.SQL_ERROR;
+        }
+
+        return SessionCode.SESSION_CREATED;
+    }
+
+    public SessionCode joinSession(String gameId) {
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn
+                        .prepareStatement("""
+                                SELECT game_id, game_owner
+                                FROM games
+                                WHERE game_id = ?
+                                LIMIT 1
+                                """)) {
+            stmt.setString(1, gameId);
+            ResultSet resultSet = stmt.executeQuery();
+
+            if (!resultSet.next()) {
+                resultSet.close();
+                stmt.close();
+                conn.close();
+                return SessionCode.SESSION_NOT_FOUND;
+            }
+        } catch (SQLException e) {
+            logger.error("", e);
+            return SessionCode.SQL_ERROR;
+        }
+
+        return SessionCode.SESSION_FOUND;
     }
 }
