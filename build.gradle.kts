@@ -27,6 +27,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.mchange:c3p0:0.11.0")
+    implementation("org.xerial:sqlite-jdbc:3.50.3.0")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
