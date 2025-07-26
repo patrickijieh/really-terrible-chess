@@ -20,7 +20,8 @@ public final class ChessDatabase {
         SQL_ERROR,
         SESSION_CREATED,
         SESSION_FOUND,
-        SESSION_NOT_FOUND
+        SESSION_NOT_FOUND,
+        SESSION_DELETED
     }
 
     private DataSource dataSource;
@@ -95,5 +96,24 @@ public final class ChessDatabase {
         }
 
         return SessionCode.SESSION_FOUND;
+    }
+
+    public SessionCode deleteSession(String gameId) {
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn
+                        .prepareStatement("""
+                                DELETE FROM games
+                                WHERE game_id = ?
+                                LIMIT 1
+                                """)) {
+            stmt.setString(1, gameId);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            logger.error("", e);
+            return SessionCode.SQL_ERROR;
+        }
+
+        return SessionCode.SESSION_DELETED;
     }
 }

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.google.gson.Gson;
 import com.pijieh.chess.business.ChessRoomManager;
-import com.pijieh.chess.database.ChessDatabase;
 import com.pijieh.chess.models.CreateRoomForm;
 import com.pijieh.chess.models.JoinRoomForm;
 
@@ -34,9 +33,6 @@ public class RoomController {
 
     private final static Gson gson = new Gson();
     private final static Logger logger = LoggerFactory.getLogger(RoomController.class);
-
-    @Autowired
-    ChessDatabase database;
 
     @Autowired
     ChessRoomManager chessRoomManager;

@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,9 @@ public class ChessApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(ChessApplication.class);
 
+    @Value("${chess.games.maximum}")
+    int maxNumberOfChessGames;
+
     @Bean
     ChessDatabase database() throws SQLException {
         return new ChessDatabase();
@@ -23,7 +27,7 @@ public class ChessApplication {
 
     @Bean
     ChessRoomManager ChessRoomManager() {
-        return new ChessRoomManager();
+        return new ChessRoomManager(maxNumberOfChessGames);
     }
 
     public static void main(String[] args) {
