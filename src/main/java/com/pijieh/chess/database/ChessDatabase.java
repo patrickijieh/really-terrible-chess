@@ -8,12 +8,13 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sqlite.SQLiteDataSource;
 
 import com.mchange.v2.c3p0.DataSources;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public final class ChessDatabase {
 
     public enum SessionCode {
@@ -25,7 +26,6 @@ public final class ChessDatabase {
     }
 
     private DataSource dataSource;
-    private static final Logger logger = LoggerFactory.getLogger(ChessDatabase.class);
 
     public ChessDatabase() throws SQLException {
         SQLiteDataSource sqliteDataSource = new SQLiteDataSource();
@@ -49,7 +49,7 @@ public final class ChessDatabase {
                     )""");
         stmt.close();
         conn.close();
-        logger.info("Successfully created chess database table.");
+        log.info("Successfully created chess database table.");
     }
 
     public SessionCode createSession(String gameId, String owner) {
@@ -65,7 +65,7 @@ public final class ChessDatabase {
             stmt.setString(2, owner);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            logger.error("", e);
+            log.error("", e);
             return SessionCode.SQL_ERROR;
         }
 
@@ -91,7 +91,7 @@ public final class ChessDatabase {
                 return SessionCode.SESSION_NOT_FOUND;
             }
         } catch (SQLException e) {
-            logger.error("", e);
+            log.error("", e);
             return SessionCode.SQL_ERROR;
         }
 
@@ -110,7 +110,7 @@ public final class ChessDatabase {
             stmt.executeUpdate();
 
         } catch (SQLException e) {
-            logger.error("", e);
+            log.error("", e);
             return SessionCode.SQL_ERROR;
         }
 

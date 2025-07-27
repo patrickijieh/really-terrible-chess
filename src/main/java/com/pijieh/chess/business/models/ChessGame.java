@@ -1,7 +1,13 @@
 package com.pijieh.chess.business.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
+@AllArgsConstructor
+@Getter
+@Setter
 public class ChessGame {
 
     @NonNull
@@ -10,9 +16,5 @@ public class ChessGame {
 
     public ChessGame(@NonNull String owner) {
         playerOne = new Player(owner);
-    }
-
-    public void setPlayerTwo(@NonNull String playerTwo) {
-        this.playerTwo = new Player(playerTwo);
     }
 }

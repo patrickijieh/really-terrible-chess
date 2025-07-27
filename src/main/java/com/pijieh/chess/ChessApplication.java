@@ -2,8 +2,6 @@ package com.pijieh.chess;
 
 import java.sql.SQLException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,10 +10,11 @@ import org.springframework.context.annotation.Bean;
 import com.pijieh.chess.business.ChessRoomManager;
 import com.pijieh.chess.database.ChessDatabase;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootApplication
 public class ChessApplication {
-
-    private static final Logger logger = LoggerFactory.getLogger(ChessApplication.class);
 
     @Value("${chess.games.maximum}")
     int maxNumberOfChessGames;

@@ -1,15 +1,8 @@
 package com.pijieh.chess.controllers;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,16 +16,18 @@ import com.pijieh.chess.business.ChessRoomManager;
 import com.pijieh.chess.models.CreateRoomForm;
 import com.pijieh.chess.models.JoinRoomForm;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+@Slf4j
 @Controller
 @RequestMapping("/")
 public class RoomController {
 
-    private final static Gson gson = new Gson();
-    private final static Logger logger = LoggerFactory.getLogger(RoomController.class);
+    private static final Gson gson = new Gson();
 
     @Autowired
     ChessRoomManager chessRoomManager;

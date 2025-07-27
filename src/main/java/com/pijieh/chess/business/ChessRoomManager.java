@@ -4,17 +4,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.pijieh.chess.business.models.ChessGame;
+import com.pijieh.chess.business.models.Player;
 import com.pijieh.chess.database.ChessDatabase;
 import com.pijieh.chess.database.ChessDatabase.SessionCode;
 
-public final class ChessRoomManager {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final Logger logger = LoggerFactory.getLogger(ChessRoomManager.class);
+@Slf4j
+public final class ChessRoomManager {
 
     @Autowired
     ChessDatabase database;
@@ -37,7 +37,7 @@ public final class ChessRoomManager {
 
         ChessGame newGame = new ChessGame(owner);
         games.put(gameId, newGame);
-        logger.info("Created new session with gameId: {}", gameId);
+        log.info("Created new session with gameId: {}", gameId);
         return Optional.of(gameId);
     }
 
@@ -47,8 +47,8 @@ public final class ChessRoomManager {
         }
 
         ChessGame game = games.get(gameId);
-        game.setPlayerTwo(player);
-        logger.info("Started new session with gameId: {}", gameId);
+        game.setPlayerTwo(new Player(player));
+        log.info("Started new session with gameId: {}", gameId);
         return Optional.of(gameId);
     }
 
