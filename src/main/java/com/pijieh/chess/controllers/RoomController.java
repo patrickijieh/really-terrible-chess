@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.google.gson.Gson;
 import com.pijieh.chess.business.ChessRoomManager;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @Slf4j
 @Controller
-@RequestMapping("/")
 public class RoomController {
 
     private static final Gson gson = new Gson();
@@ -53,7 +51,7 @@ public class RoomController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        final String body = gson.toJson(Map.of("id", gameId.get()));
+        final String body = gson.toJson(Map.of("gameId", gameId.get()));
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 
@@ -69,7 +67,7 @@ public class RoomController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        final String body = gson.toJson(Map.of("id", gameId.get()));
+        final String body = gson.toJson(Map.of("gameId", gameId.get()));
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 }

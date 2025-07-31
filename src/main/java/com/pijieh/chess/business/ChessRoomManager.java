@@ -20,11 +20,11 @@ public final class ChessRoomManager {
     ChessDatabase database;
 
     int maxGames;
-    ConcurrentHashMap<String, ChessGame> games;
+    ConcurrentHashMap<String, ChessGame> chessGames;
 
     public ChessRoomManager(int maxNumberOfChessGames) {
         ConcurrentHashMap<String, ChessGame> games = new ConcurrentHashMap<>(maxGames);
-        this.games = games;
+        this.chessGames = games;
         this.maxGames = maxNumberOfChessGames;
     }
 
@@ -36,7 +36,7 @@ public final class ChessRoomManager {
         }
 
         ChessGame newGame = new ChessGame(owner);
-        games.put(gameId, newGame);
+        chessGames.put(gameId, newGame);
         log.info("Created new session with gameId: {}", gameId);
         return Optional.of(gameId);
     }
@@ -46,10 +46,25 @@ public final class ChessRoomManager {
             return Optional.empty();
         }
 
-        ChessGame game = games.get(gameId);
+        ChessGame game = chessGames.get(gameId);
         game.setPlayerTwo(new Player(player));
         log.info("Started new session with gameId: {}", gameId);
         return Optional.of(gameId);
+    }
+
+    public boolean playerIsInRoom(String gameId, String playerName) {
+        ChessGame game = chessGames.get(gameId);
+
+        if (null == game) {
+            return false;
+        }
+
+        if (null == game.getPlayerTwo()) {
+            return game.getPlayerOne().getName().equals(playerName);
+        }
+
+        return game.getPlayerOne().getName().equals(playerName) ||
+                game.getPlayerTwo().getName().equals(playerName);
     }
 
     private void destroyRoom(String gameId) {
@@ -57,6 +72,6 @@ public final class ChessRoomManager {
             return;
         }
 
-        games.remove(gameId);
+        chessGames.remove(gameId);
     }
 }
