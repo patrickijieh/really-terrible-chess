@@ -1,11 +1,47 @@
+import { useNavigate } from "react-router";
+import type { GameInfo } from "./types";
 import "./styles.css";
 
 const CreateRoom = () => {
     document.title = "Online Chess - Create Room";
+    const navigate = useNavigate();
+
+    const send_room_creation_info = async (): Promise<void> => {
+        const input = document.getElementById("name") as HTMLInputElement;
+        const name: string = input.value;
+
+        console.log(name);
+        if (!name) {
+            return;
+        }
+
+        const response = await fetch("/create-room", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "name": name
+            })
+        });
+
+        const data: GameInfo = await response.json();
+        localStorage.setItem("gameId", data.gameId);
+        localStorage.setItem("name", name);
+
+        navigate("/game");
+    }
+
     return (
         <div className="content">
             <h1>Online Chess - Create Room</h1>
             <p>Create a new room</p>
+            <input type="text" name="name" id="name" />
+            <button
+                className="common-button"
+                onClick={send_room_creation_info}>
+                Create Room!
+            </button>
         </div>
     );
 };
