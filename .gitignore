@@ -38,6 +38,10 @@ out/
 ### VS Code ###
 .vscode/
 
+### Vim and NeoVim ###
+*.vim
+*.nvim
+
 ### Typescript and NodeJS ###
 *.js
 node_modules

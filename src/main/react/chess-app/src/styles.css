@@ -24,3 +24,15 @@ body {
   font-weight: 400;
   opacity: 0.5;
 }
+
+.common-button {
+    border-radius: 5px;
+    text-decoration: none;
+    background-color: #008000;
+    padding: 1rem;
+    width: 5rem;
+}
+
+.common-button:active {
+    background-color: #06402B
+}

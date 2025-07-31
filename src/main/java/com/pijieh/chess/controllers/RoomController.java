@@ -32,12 +32,12 @@ public class RoomController {
 
     @GetMapping("/create-room")
     public String createRoom() {
-        return "html/create_room.html";
+        return "html/index.html";
     }
 
     @GetMapping("/join-room")
     public String joinRoom() {
-        return "html/join_room.html";
+        return "html/index.html";
     }
 
     @PostMapping("/create-room")

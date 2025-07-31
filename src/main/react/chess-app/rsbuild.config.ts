@@ -11,5 +11,6 @@ export default defineConfig({
             css: "css/",
         },
         cleanDistPath: true,
+        filenameHash: false,
     }
 });

@@ -32,7 +32,7 @@ public class GameController {
 
     @GetMapping("/game")
     public String game() {
-        return "html/game.html";
+        return "html/index.html";
     }
 
     @MessageMapping("/join/{id}")
