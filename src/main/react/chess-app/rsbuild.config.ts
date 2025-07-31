@@ -11,7 +11,6 @@ export default defineConfig({
             css: "css/",
         },
         cleanDistPath: true,
-        filenameHash: false,
     },
     html: {
         favicon: "./src/favicon/favicon.ico",
