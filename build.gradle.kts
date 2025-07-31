@@ -28,10 +28,11 @@ dependencies {
 
 tasks.withType<Test> { useJUnitPlatform() }
 
-tasks.register<Exec>("compileTypeScript") {
+tasks.register<Exec>("buildReactApp") {
     group = "Build"
-    description = "Compile TypeScript files to JavaScript files." 
-    commandLine("tsc", "-p", "tsconfig.json")
+    description = "Create static files from the React app."
+    workingDir("./src/main/react/chess-app")
+    commandLine("npm", "run", "build")
 }
 
-tasks.bootJar { dependsOn("compileTypeScript") }
+tasks.bootJar { dependsOn("buildReactApp") }
