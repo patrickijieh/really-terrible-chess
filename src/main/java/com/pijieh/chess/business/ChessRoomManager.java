@@ -92,6 +92,10 @@ public final class ChessRoomManager {
             game.getPlayerTwo().setGameId(gameId);
             playerMap.put(socketSessionId, game.getPlayerTwo());
         }
+
+        if (game.isReady()) {
+            log.info("game {} is ready to start", gameId);
+        }
     }
 
     public Player[] getPlayersFromGame(String gameId) {
@@ -126,6 +130,7 @@ public final class ChessRoomManager {
         Player disconnectedPlayer = playerMap.get(socketSessionId);
 
         destroyRoom(disconnectedPlayer.getGameId());
+        playerMap.remove(socketSessionId);
     }
 
     private void destroyRoom(String gameId) {

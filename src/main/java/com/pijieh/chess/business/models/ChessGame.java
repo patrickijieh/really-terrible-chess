@@ -17,4 +17,11 @@ public class ChessGame {
     public ChessGame(@NonNull Player owner) {
         playerOne = owner;
     }
+
+    public boolean isReady() {
+        if (null == playerTwo) {
+            return false;
+        }
+        return playerOne.getSocketSessionId() != null && playerTwo.getSocketSessionId() != null;
+    }
 }
