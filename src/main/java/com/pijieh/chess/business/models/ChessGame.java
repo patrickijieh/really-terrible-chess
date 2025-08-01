@@ -14,7 +14,7 @@ public class ChessGame {
     Player playerOne;
     Player playerTwo;
 
-    public ChessGame(@NonNull String owner) {
-        playerOne = new Player(owner);
+    public ChessGame(@NonNull Player owner) {
+        playerOne = owner;
     }
 }

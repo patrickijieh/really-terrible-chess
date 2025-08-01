@@ -1,13 +1,18 @@
 package com.pijieh.chess.business.models;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
+@Setter
 public class Player {
 
     @NonNull
     String name;
+
+    String socketSessionId;
+    String gameId;
 }

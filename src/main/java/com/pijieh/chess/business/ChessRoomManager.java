@@ -1,6 +1,9 @@
 package com.pijieh.chess.business;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,6 +16,7 @@ import com.pijieh.chess.database.ChessDatabase.SessionCode;
 
 import lombok.extern.slf4j.Slf4j;
 
+// TODO: Separate player map into different manager
 @Slf4j
 public final class ChessRoomManager {
 
@@ -20,22 +24,28 @@ public final class ChessRoomManager {
     ChessDatabase database;
 
     int maxGames;
+    int maxPlayers;
     ConcurrentHashMap<String, ChessGame> chessGames;
+    ConcurrentHashMap<String, Player> playerMap;
 
     public ChessRoomManager(int maxNumberOfChessGames) {
-        ConcurrentHashMap<String, ChessGame> games = new ConcurrentHashMap<>(maxGames);
-        this.chessGames = games;
         this.maxGames = maxNumberOfChessGames;
+        this.maxPlayers = maxNumberOfChessGames * 2;
+        ConcurrentHashMap<String, ChessGame> games = new ConcurrentHashMap<>(maxGames);
+        ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>(maxPlayers);
+        this.chessGames = games;
+        this.playerMap = players;
     }
 
     public Optional<String> createRoom(String owner) {
-        final String gameId = Long.toHexString(UUID.randomUUID().getMostSignificantBits());
+        final String gameId = Long.toHexString(UUID.randomUUID().getMostSignificantBits())
+                .toUpperCase();
 
         if (database.createSession(gameId, owner) != SessionCode.SESSION_CREATED) {
             return Optional.empty();
         }
-
-        ChessGame newGame = new ChessGame(owner);
+        Player playerOne = new Player(owner);
+        ChessGame newGame = new ChessGame(playerOne);
         chessGames.put(gameId, newGame);
         log.info("Created new session with gameId: {}", gameId);
         return Optional.of(gameId);
@@ -48,7 +58,6 @@ public final class ChessRoomManager {
 
         ChessGame game = chessGames.get(gameId);
         game.setPlayerTwo(new Player(player));
-        log.info("Started new session with gameId: {}", gameId);
         return Optional.of(gameId);
     }
 
@@ -65,6 +74,58 @@ public final class ChessRoomManager {
 
         return game.getPlayerOne().getName().equals(playerName) ||
                 game.getPlayerTwo().getName().equals(playerName);
+    }
+
+    public void setPlayerSession(String socketSessionId, String playerName, String gameId) throws RuntimeException {
+        ChessGame game = chessGames.get(gameId);
+
+        if (null == game) {
+            throw new RuntimeException("game id is somehow not valid; resort to crashing & burning");
+        }
+
+        if (game.getPlayerOne().getName().equals(playerName)) {
+            game.getPlayerOne().setSocketSessionId(socketSessionId);
+            game.getPlayerOne().setGameId(gameId);
+            playerMap.put(socketSessionId, game.getPlayerOne());
+        } else {
+            game.getPlayerTwo().setSocketSessionId(socketSessionId);
+            game.getPlayerTwo().setGameId(gameId);
+            playerMap.put(socketSessionId, game.getPlayerTwo());
+        }
+    }
+
+    public Player[] getPlayersFromGame(String gameId) {
+        Player[] players = new Player[2];
+        ChessGame game = this.chessGames.get(gameId);
+
+        if (null == game) {
+            return players;
+        }
+
+        players[0] = game.getPlayerOne();
+        players[1] = game.getPlayerTwo();
+        return players;
+    }
+
+    public List<Map<String, String>> getPlayerNamesFromGame(String gameId) {
+        Player[] players = getPlayersFromGame(gameId);
+
+        List<Map<String, String>> playerNames = new ArrayList<>();
+        for (int i = 0; i < players.length; i++) {
+            if (players[i] == null) {
+                continue;
+            }
+            Map<String, String> p = Map.of("name", players[i].getName());
+            playerNames.add(p);
+        }
+
+        return playerNames;
+    }
+
+    public void removePlayer(String socketSessionId) {
+        Player disconnectedPlayer = playerMap.get(socketSessionId);
+
+        destroyRoom(disconnectedPlayer.getGameId());
     }
 
     private void destroyRoom(String gameId) {

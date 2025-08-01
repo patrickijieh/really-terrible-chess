@@ -1,9 +1,10 @@
 import { Client, Stomp } from "@stomp/stompjs";
+import { WebSocketClient } from "./types";
 import "./styles.css";
 import { useEffect, useState } from "react";
 
 const Game = () => {
-    const [stompClient, setStompClient] = useState(new Client());
+    const [wsClient, setWsClient] = useState(new WebSocketClient());
     useEffect(() => { startStompClient() }, []);
 
     const startStompClient = () => {
@@ -14,29 +15,26 @@ const Game = () => {
             return;
         }
 
-        const newClient = Stomp.client("/ws");
-        setStompClient(Stomp.client("/ws"));
-
-        newClient.onConnect = on_connection;
-        newClient.onWebSocketError = on_ws_error;
-        newClient.debug = () => { };
+        const newClient = new WebSocketClient(gameId, name, "/ws", false);
         newClient.activate();
-
-        setStompClient(newClient);
+        setWsClient(newClient);
     }
 
-    const on_connection = () => {
-        console.log("client connected");
+    const getSessionIdString = () => {
+        const gameId = localStorage.getItem("gameId");
+        if (!gameId) {
+            return "NULL";
+        }
+
+        return gameId;
     }
 
-    const on_ws_error = (_event: Error) => {
-        console.error("websocket error");
-    }
     document.title = "Online Chess Game";
     return (
         <div className="content">
             <h1>Online Chess Game</h1>
-            <p>Create a new room</p>
+            <h1>Session ID: {getSessionIdString()}</h1>
+            <div id="chesstable"></div>
         </div>
     );
 };

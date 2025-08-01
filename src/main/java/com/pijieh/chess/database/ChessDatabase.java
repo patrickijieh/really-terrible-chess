@@ -104,7 +104,6 @@ public final class ChessDatabase {
                         .prepareStatement("""
                                 DELETE FROM games
                                 WHERE game_id = ?
-                                LIMIT 1
                                 """)) {
             stmt.setString(1, gameId);
             stmt.executeUpdate();

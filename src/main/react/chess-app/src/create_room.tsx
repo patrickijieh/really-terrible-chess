@@ -10,7 +10,6 @@ const CreateRoom = () => {
         const input = document.getElementById("name") as HTMLInputElement;
         const name: string = input.value;
 
-        console.log(name);
         if (!name) {
             return;
         }
@@ -36,7 +35,7 @@ const CreateRoom = () => {
         <div className="content">
             <h1>Online Chess - Create Room</h1>
             <p>Create a new room</p>
-            <input type="text" name="name" id="name" />
+            <input type="text" name="name" id="name" placeholder="Enter your name" />
             <button
                 className="common-button"
                 onClick={send_room_creation_info}>
