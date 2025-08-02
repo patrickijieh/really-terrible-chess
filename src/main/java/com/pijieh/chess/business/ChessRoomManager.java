@@ -47,7 +47,7 @@ public final class ChessRoomManager {
         Player playerOne = new Player(owner);
         ChessGame newGame = new ChessGame(playerOne);
         chessGames.put(gameId, newGame);
-        log.info("Created new session with gameId: {}", gameId);
+        log.info("Created new game with id: {}", gameId);
         return Optional.of(gameId);
     }
 
@@ -119,8 +119,8 @@ public final class ChessRoomManager {
             if (players[i] == null) {
                 continue;
             }
-            Map<String, String> p = Map.of("name", players[i].getName());
-            playerNames.add(p);
+            Map<String, String> playerName = Map.of("name", players[i].getName());
+            playerNames.add(playerName);
         }
 
         return playerNames;
@@ -129,15 +129,16 @@ public final class ChessRoomManager {
     public void removePlayer(String socketSessionId) {
         Player disconnectedPlayer = playerMap.get(socketSessionId);
 
-        destroyRoom(disconnectedPlayer.getGameId());
+        destroyGame(disconnectedPlayer.getGameId());
         playerMap.remove(socketSessionId);
     }
 
-    private void destroyRoom(String gameId) {
+    private void destroyGame(String gameId) {
         if (database.deleteSession(gameId) != SessionCode.SESSION_DELETED) {
             return;
         }
 
+        log.info("Deleting game with id: {}", gameId);
         chessGames.remove(gameId);
     }
 }

@@ -1,6 +1,7 @@
 import { WebSocketClient } from "./types";
 import "./styles.css";
 import { useEffect, useState } from "react";
+import ChessBoard from "./chessboard";
 
 const Game = () => {
     const [wsClient, setWsClient] = useState(new WebSocketClient());
@@ -33,7 +34,9 @@ const Game = () => {
         <div className="content">
             <h1>Online Chess Game</h1>
             <h3>Session ID: {getSessionIdString()}</h3>
-            <div id="chesstable"></div>
+            <div id="chesstable">
+                <ChessBoard />
+            </div>
         </div>
     );
 };
