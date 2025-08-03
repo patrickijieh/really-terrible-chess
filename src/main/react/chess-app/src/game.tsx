@@ -5,6 +5,7 @@ import ChessBoard from "./chessboard";
 
 const Game = () => {
     const [wsClient, setWsClient] = useState(new WebSocketClient());
+    const [boardStr, setBoardStr] = useState("");
     useEffect(() => { startWebSocketClient() }, []);
 
     const startWebSocketClient = () => {
@@ -35,7 +36,7 @@ const Game = () => {
             <h1>Online Chess Game</h1>
             <h3>Session ID: {getSessionIdString()}</h3>
             <div id="chesstable">
-                <ChessBoard />
+                <ChessBoard board={boardStr} />
             </div>
         </div>
     );

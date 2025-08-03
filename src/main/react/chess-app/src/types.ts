@@ -4,6 +4,38 @@ type GameInfo = {
     gameId: string
 };
 
+class ChessPiece {
+    private readonly type_: ChessPieceType;
+    private readonly isWhite_: boolean;
+    private readonly pos_: string;
+    constructor(type: ChessPieceType, isWhite: boolean, pos: string) {
+        this.isWhite_ = isWhite;
+        this.type_ = type;
+        this.pos_ = pos;
+    }
+
+    get type() {
+        return this.type_;
+    }
+
+    get isWhite() {
+        return this.isWhite_;
+    }
+
+    get pos() {
+        return this.pos_;
+    }
+}
+
+enum ChessPieceType {
+    PAWN = "PAWN",
+    KNIGHT = "KNIGHT",
+    BISHOP = "BISHOP",
+    ROOK = "ROOK",
+    QUEEN = "QUEEN",
+    KING = "KING"
+}
+
 class WebSocketClient {
     private stmpClient_: Client;
     private gameId_?: String;
@@ -59,4 +91,4 @@ class WebSocketClient {
 }
 
 export type { GameInfo };
-export { WebSocketClient };
+export { WebSocketClient, ChessPieceType, ChessPiece };
