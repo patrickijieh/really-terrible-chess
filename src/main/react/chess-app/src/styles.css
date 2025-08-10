@@ -56,3 +56,7 @@ body {
     background-color: #06402B;
     color: #ffffff;
 }
+
+.valid {
+    background-color: #008000;
+}

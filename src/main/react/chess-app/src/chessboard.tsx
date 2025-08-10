@@ -1,91 +1,250 @@
-import type { JSX } from "react";
+import { useEffect, useState, type DragEvent, type JSX } from "react";
 import "./styles.css";
 import { ChessPiece, ChessPieceType } from "./types";
 
-import white_rook from "./chess-pieces/white-rook.png";
-import black_rook from "./chess-pieces/black-rook.png";
-import white_queen from "./chess-pieces/white-queen.png";
-import black_queen from "./chess-pieces/black-queen.png";
-import white_king from "./chess-pieces/white-king.png";
-import black_king from "./chess-pieces/black-king.png";
-import white_bishop from "./chess-pieces/white-bishop.png";
-import black_bishop from "./chess-pieces/black-bishop.png";
-import white_knight from "./chess-pieces/white-knight.png";
-import black_knight from "./chess-pieces/black-knight.png";
-import white_pawn from "./chess-pieces/white-pawn.png";
-import black_pawn from "./chess-pieces/black-pawn.png";
+import ChessSquare from "./chess_square";
 
-const startingWhite: string = "Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2";
-const startingBlack: string = "Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7";
-
+const STARTING_WHITE: string = "Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2";
+const STARTING_BLACK: string = "Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7";
+const BOARD_SIZE: number = 8;
 interface ChessBoardProps {
     board: string
 }
 
+class ChessPieceProps {
+    type: ChessPieceType;
+    isWhite: boolean;
+    pos: string;
+    constructor(type: ChessPieceType, isWhite: boolean, pos: string) {
+        this.type = type;
+        this.isWhite = isWhite;
+        this.pos = pos;
+    }
+}
+
 const ChessBoard = (props: ChessBoardProps) => {
 
+    const [validMoves, setValidMoves] = useState([] as number[]);
     const createChessBoard = (boardStr: string) => {
         if (boardStr.length === 0) {
-            boardStr = startingWhite + "|" + startingBlack;
+            boardStr = STARTING_BLACK + "|" + STARTING_WHITE;
         }
 
         let pieces = parseBoard(boardStr);
 
-        const board: JSX.Element[][] = [];
-        for (let row = 8; row > 0; row--) {
+        const newBoard: JSX.Element[][] = [];
+        for (let row = BOARD_SIZE; row > 0; row--) {
             let column = [];
-            for (let col = 0; col < 8; col++) {
-                column.push(<></>);
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                column.push(<ChessSquare isWhiteSquare={(row + col) % 2 == 0} />);
             }
-            board.push(column);
+            newBoard.push(column);
         }
 
         pieces.map(piece => {
             let row = piece.pos.charAt(1);
-            let row_number = 7 - (Number.parseInt(row) - 1);
+            let row_number = Number.parseInt(row) - 1;
             let column_number = piece.pos.charCodeAt(0) - "a".charCodeAt(0);
 
-            let img_src: string;
-            switch (piece.type) {
-                case ChessPieceType.ROOK:
-                    img_src = piece.isWhite ? white_rook : black_rook;
-                    break;
-                case ChessPieceType.QUEEN:
-                    img_src = piece.isWhite ? white_queen : black_queen;
-                    break;
-                case ChessPieceType.KING:
-                    img_src = piece.isWhite ? white_king : black_king;
-                    break;
-                case ChessPieceType.BISHOP:
-                    img_src = piece.isWhite ? white_bishop : black_bishop;
-                    break;
-                case ChessPieceType.KNIGHT:
-                    img_src = piece.isWhite ? white_knight : black_knight;
-                    break;
-                case ChessPieceType.PAWN:
-                    img_src = piece.isWhite ? white_pawn : black_pawn;
-                    break;
-            }
-            board[row_number][column_number] = <img src={img_src}
-                alt={"" + (piece.isWhite ? "WHITE " : "BLACK ") + piece.type}
-            />;
+            newBoard[row_number][column_number] =
+                <ChessSquare
+                    isWhiteSquare={(row_number + column_number) % 2 == 0}
+                    chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, piece.pos)}
+                    handlePieceMoveStart={handlePieceMoveStart}
+                    handlePieceMoveEnd={() => { }}
+                />;
         });
 
-        let row_n = 1, col_n = 0;
-        return (
-            <table>
-                {board.map(row => {
-                    row_n++;
-                    return (<tr>
-                        {row.map(elem => {
-                            return <td key={row_n + col_n} className={"cell " + ((row_n + col_n++) % 2 == 0 ? "cell-white" : "cell-black")}>{elem}</td>
-                        })}
-                    </tr>)
-                }
-                )}
-            </table>
-        );
+        return newBoard;
     };
+
+    const handlePieceMoveStart = (event: DragEvent<HTMLDivElement>, pieceType: ChessPieceType, pos: string) => {
+        showAvailableMoves(pieceType, pos);
+        switch (pieceType) {
+            case ChessPieceType.BISHOP:
+                break;
+            case ChessPieceType.KING:
+                break;
+            case ChessPieceType.KNIGHT:
+                break;
+            case ChessPieceType.PAWN:
+                break;
+            case ChessPieceType.QUEEN:
+                break;
+            case ChessPieceType.ROOK:
+                break;
+        }
+    }
+
+    const showAvailableMoves = (pieceType: ChessPieceType, pos: string) => {
+        if (validMoves !== undefined && validMoves.length > 0) {
+            clearValidMoves();
+        }
+        let col_num: number = pos.charCodeAt(0) - "a".charCodeAt(0);
+        let row_num = Number.parseInt(pos.charAt(1)) - 1;
+        let validSquares: number[] = [];
+        switch (pieceType) {
+            case ChessPieceType.BISHOP:
+                validSquares = getBishopMoves(row_num, col_num);
+                break;
+            case ChessPieceType.KING:
+                validSquares = getKingMoves(row_num, col_num);
+                break;
+            case ChessPieceType.KNIGHT:
+                break;
+            case ChessPieceType.PAWN:
+                break;
+            case ChessPieceType.QUEEN:
+                break;
+            case ChessPieceType.ROOK:
+                break;
+        }
+
+        setValidMoves(validMoves => validMoves.concat(validSquares));
+    }
+
+    const clearValidMoves = () => {
+        for (let i = 0; i < validMoves.length; i++) {
+            const elem = document.getElementById("" + validMoves[i])?.children[0];
+            const square_class = elem?.getAttribute("class");
+            if (!square_class) {
+                continue;
+            }
+            const idx = square_class?.lastIndexOf("valid");
+            if (idx === -1) {
+                continue;
+            }
+            elem?.setAttribute("class", square_class?.substring(0, idx));
+        }
+        setValidMoves([]);
+    }
+
+    const getBishopMoves = (row_num: number, col_num: number) => {
+        let i = 1;
+        let validSquares: number[] = [];
+        while (i + row_num < 8 && i + col_num < 8) {
+            let square_element = document.getElementById("" + ((row_num + i) * 8 + col_num + i))?.children[0];
+            if (square_element?.childElementCount !== 0) {
+                i++;
+                continue;
+            }
+            let square_class = square_element?.className;
+            square_element?.setAttribute("class", square_class + " valid");
+            validSquares.push((row_num + i) * 8 + col_num + i);
+            i++;
+        }
+        i = 1;
+        while (row_num - i >= 0 && i + col_num < 8) {
+            let square_element = document.getElementById("" + ((row_num - i) * 8 + col_num + i))?.children[0];
+            if (square_element?.childElementCount !== 0) {
+                i++;
+                continue;
+            }
+            let square_class = square_element?.className;
+            square_element?.setAttribute("class", square_class + " valid");
+            validSquares.push((row_num - i) * 8 + col_num + i);
+            i++;
+        }
+        i = 1;
+        while (row_num - i >= 0 && col_num - i >= 0) {
+            let square_element = document.getElementById("" + ((row_num - i) * 8 + col_num - i))?.children[0];
+            if (square_element?.childElementCount !== 0) {
+                i++;
+                continue;
+            }
+            let square_class = square_element?.className;
+            square_element?.setAttribute("class", square_class + " valid");
+            validSquares.push((row_num - i) * 8 + col_num - i);
+            i++;
+        }
+        i = 1;
+        while (i + row_num < 8 && col_num - i >= 0) {
+            let square_element = document.getElementById("" + ((row_num + i) * 8 + col_num - i))?.children[0];
+            if (square_element?.childElementCount !== 0) {
+                i++;
+                continue;
+            }
+            let square_class = square_element?.className;
+            square_element?.setAttribute("class", square_class + " valid");
+            validSquares.push((row_num + i) * 8 + col_num - i);
+            i++;
+        }
+
+        return validSquares;
+    }
+
+    const getKingMoves = (row_num: number, col_num: number) => {
+        let validSquares: number[] = [];
+
+        const left = col_num - 1;
+        const right = col_num + 1;
+        const top = row_num - 1;
+        const bottom = row_num + 1;
+        const l_square = document.getElementById("" + (row_num * 8 + left))?.children[0];
+        const r_square = document.getElementById("" + (row_num * 8 + right))?.children[0];
+        const t_square = document.getElementById("" + (top * 8 + col_num))?.children[0];
+        const b_square = document.getElementById("" + (bottom * 8 + col_num))?.children[0];
+
+        if (l_square !== null) {
+            if (l_square?.childElementCount === 0) {
+                const l_square_class = l_square?.className;
+                l_square?.setAttribute("class", l_square_class + " valid");
+                validSquares.push(row_num * 8 + left);
+            }
+            if (t_square !== null) {
+                const tl_square = document.getElementById("" + (top * 8 + left))?.children[0];
+                if (tl_square?.childElementCount === 0) {
+                    const tl_square_class = tl_square?.className;
+                    tl_square?.setAttribute("class", tl_square_class + " valid");
+                    validSquares.push(top * 8 + left);
+                }
+            }
+            if (b_square !== null) {
+                const bl_square = document.getElementById("" + (bottom * 8 + left))?.children[0];
+                if (bl_square?.childElementCount === 0) {
+                    const bl_square_class = bl_square?.className;
+                    bl_square?.setAttribute("class", bl_square_class + " valid");
+                    validSquares.push(bottom * 8 + left);
+                }
+            }
+        }
+
+        if (r_square !== null) {
+            if (r_square?.childElementCount === 0) {
+                const r_square_class = r_square?.className;
+                r_square?.setAttribute("class", r_square_class + " valid");
+                validSquares.push(row_num * 8 + right);
+            }
+            if (t_square !== null) {
+                const tr_square = document.getElementById("" + (top * 8 + right))?.children[0];
+                if (tr_square?.childElementCount === 0) {
+                    const tr_square_class = tr_square?.className;
+                    tr_square?.setAttribute("class", tr_square_class + " valid");
+                    validSquares.push(top * 8 + right);
+                }
+            }
+            if (b_square !== null) {
+                const br_square = document.getElementById("" + (bottom * 8 + right))?.children[0];
+                if (br_square?.childElementCount === 0) {
+                    const br_square_class = br_square?.className;
+                    br_square?.setAttribute("class", br_square_class + " valid");
+                    validSquares.push(bottom * 8 + right);
+                }
+            }
+        }
+
+        if (t_square !== null && t_square?.childElementCount === 0) {
+            const t_square_class = t_square?.className;
+            t_square?.setAttribute("class", t_square_class + " valid");
+            validSquares.push(top * 8 + col_num);
+        }
+        if (b_square !== null && b_square?.childElementCount === 0) {
+            const b_square_class = b_square?.className;
+            b_square?.setAttribute("class", b_square_class + " valid");
+            validSquares.push(bottom * 8 + col_num);
+        }
+        return validSquares;
+    }
 
     const parseBoard = (boardStr: string) => {
         let board = [];
@@ -133,9 +292,23 @@ const ChessBoard = (props: ChessBoardProps) => {
         return board;
     }
 
+    const board = createChessBoard(props.board);
+
+    let num = 0;
     return (
         <div>
-            {createChessBoard(props.board)}
+            <table>
+                {board.map(row => {
+                    return (<tr>
+                        {row.map(elem => {
+                            let td = <td key={num} id={"" + num}>{elem}</td>;
+                            num++;
+                            return td;
+                        })}
+                    </tr>)
+                }
+                )}
+            </table>
         </div>
     );
 };
