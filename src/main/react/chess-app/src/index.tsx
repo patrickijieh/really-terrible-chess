@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router';
-import Home from './home';
-import CreateRoom from './create_room';
-import JoinRoom from './join_room';
-import Game from './game';
+import Home from './component/Home';
+import CreateRoom from './component/CreateRoom';
+import JoinRoom from './component/JoinRoom';
+import Game from './component/Game';
 
 const rootEl = document.getElementById('root');
 if (rootEl) {

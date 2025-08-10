@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router";
-import type { GameInfo } from "./types";
-import "./styles.css";
+import type { GameInfo } from "../types";
+import "../styles.css";
 
 const JoinRoom = () => {
     document.title = "Online Chess - Join Room";
     const navigate = useNavigate();
 
-    const send_room_join_info = async (): Promise<void> => {
+    const sendRoomJoinInfo = async (): Promise<void> => {
         const name_input = document.getElementById("name") as HTMLInputElement;
         const gameId_input = document.getElementById("gameId") as HTMLInputElement;
         const name: string = name_input.value;
@@ -42,7 +42,7 @@ const JoinRoom = () => {
             <input type="text" name="gameId" id="gameId" placeholder="Enter the game ID" />
             <button
                 className="common-button"
-                onClick={send_room_join_info}>
+                onClick={sendRoomJoinInfo}>
                 Join Room!
             </button>
         </div>

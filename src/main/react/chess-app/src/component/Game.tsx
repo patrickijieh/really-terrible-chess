@@ -1,7 +1,7 @@
-import { WebSocketClient } from "./types";
-import "./styles.css";
+import { WebSocketClient } from "../WebSocketClient";
+import "../styles.css";
 import { useEffect, useState } from "react";
-import ChessBoard from "./chessboard";
+import ChessBoard from "./Chessboard";
 
 const Game = () => {
     const [wsClient, setWsClient] = useState(new WebSocketClient());

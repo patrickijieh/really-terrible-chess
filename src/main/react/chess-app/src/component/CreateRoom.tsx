@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router";
-import type { GameInfo } from "./types";
-import "./styles.css";
+import type { GameInfo } from "../types";
+import "../styles.css";
 
 const CreateRoom = () => {
     document.title = "Online Chess - Create Room";
     const navigate = useNavigate();
 
-    const send_room_creation_info = async (): Promise<void> => {
+    const sendRoomCreationInfo = async (): Promise<void> => {
         const input = document.getElementById("name") as HTMLInputElement;
         const name: string = input.value;
 
@@ -38,7 +38,7 @@ const CreateRoom = () => {
             <input type="text" name="name" id="name" placeholder="Enter your name" />
             <button
                 className="common-button"
-                onClick={send_room_creation_info}>
+                onClick={sendRoomCreationInfo}>
                 Create Room!
             </button>
         </div>

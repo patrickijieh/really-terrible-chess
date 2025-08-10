@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router';
 
-import './styles.css';
+import '../styles.css';
 
 const Home = () => {
     document.title = "Online Chess - Home";
