@@ -3,7 +3,7 @@ import type { GameInfo } from "../types";
 import "../styles.css";
 
 const CreateRoom = () => {
-    document.title = "Online Chess - Create Room";
+    document.title = "Really Terrible Chess - Create Room";
     const navigate = useNavigate();
 
     const sendRoomCreationInfo = async (): Promise<void> => {
@@ -33,7 +33,7 @@ const CreateRoom = () => {
 
     return (
         <div className="content">
-            <h1>Online Chess - Create Room</h1>
+            <h1>Really Terrible Chess - Create Room</h1>
             <p>Create a new room</p>
             <input type="text" name="name" id="name" placeholder="Enter your name" />
             <button

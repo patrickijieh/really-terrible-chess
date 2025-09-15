@@ -3,7 +3,7 @@ import type { GameInfo } from "../types";
 import "../styles.css";
 
 const JoinRoom = () => {
-    document.title = "Online Chess - Join Room";
+    document.title = "Really Terrible Chess - Join Room";
     const navigate = useNavigate();
 
     const sendRoomJoinInfo = async (): Promise<void> => {

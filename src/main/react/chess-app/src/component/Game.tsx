@@ -30,12 +30,16 @@ const Game = () => {
         return gameId;
     }
 
-    document.title = "Online Chess Game";
+    document.title = "Really Terrible Chess";
     return (
         <div className="content">
-            <h1>Online Chess Game</h1>
+            <h1>Really Terrible Chess Game</h1>
             <h3>Session ID: {getSessionIdString()}</h3>
-            <div id="chesstable">
+            <div
+                id="chesstable"
+                onDragStartCapture={() => { }}
+                onDragEndCapture={() => { }}
+            >
                 <ChessBoard board={boardStr} />
             </div>
         </div>

@@ -1,8 +1,8 @@
-import { PieceRank } from "../types.ts"
+import { PieceRank, ChessPieceProps } from "../types.ts"
 
 import whiteRook from "../chess-pieces/white-rook.png";
 import blackRook from "../chess-pieces/black-rook.png";
-import whiteQueen from "../chess-pieces/white-knight.png";
+import whiteQueen from "../chess-pieces/white-queen.png";
 import blackQueen from "../chess-pieces/black-queen.png";
 import whiteKing from "../chess-pieces/white-king.png";
 import blackKing from "../chess-pieces/black-king.png";
@@ -12,14 +12,6 @@ import whiteKnight from "../chess-pieces/white-knight.png";
 import blackKnight from "../chess-pieces/black-knight.png";
 import whitePawn from "../chess-pieces/white-pawn.png";
 import blackPawn from "../chess-pieces/black-pawn.png";
-
-
-
-interface ChessPieceProps {
-    rank: PieceRank;
-    isWhite: boolean;
-    pos: string;
-}
 
 const ChessPiece = (props: ChessPieceProps) => {
 

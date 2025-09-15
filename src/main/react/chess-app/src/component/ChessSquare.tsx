@@ -19,10 +19,11 @@ const ChessSquare = (props: ChessSquareProps) => {
 
     return (
         <div
-            onDragStart={(event) => props.handlePieceMoveStart!(event, props.chessPieceProps!.rank, props.chessPieceProps!.pos)}
+            onDragStart={(event) => props.handlePieceMoveStart!(event,
+                props.chessPieceProps!.rank, props.chessPieceProps!.pos, props.chessPieceProps!.isWhite)}
             onDragEnd={(_event) => { props.handlePieceMoveEnd!() }}
             onDragOver={(_event) => { }}
-            onClick={(event) => console.log((event.target as HTMLImageElement).parentNode)}
+            onClick={(event) => { }}
             className={squareClass}
         >
             <ChessPiece
