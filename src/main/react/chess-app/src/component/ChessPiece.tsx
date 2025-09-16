@@ -43,6 +43,7 @@ const ChessPiece = (props: ChessPieceProps) => {
         <>
             <img src={imgSrc}
                 alt={"" + (props.isWhite ? "WHITE " : "BLACK ") + props.rank}
+                draggable={true}
             />
         </>
     )

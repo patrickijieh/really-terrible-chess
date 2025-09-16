@@ -1,4 +1,4 @@
-import { useState, type DragEvent, type JSX } from "react";
+import { useEffect, useRef, useState, type DragEvent, type JSX, type MouseEvent } from "react";
 import "../styles.css";
 import { PieceRank, ChessPieceType, ChessBoardProps, ChessPieceProps } from "../types";
 
@@ -10,7 +10,22 @@ const BOARD_SIZE: number = 8;
 
 const ChessBoard = (props: ChessBoardProps) => {
 
-    const [validMoves, setValidMoves] = useState([] as number[]);
+    const [validMoves, setValidMoves] = useState<number[]>([]);
+    const [draggedClone, setDraggedClone] = useState<HTMLImageElement>();
+    const [dragging, setDragging] = useState(false);
+    const dragRef = useRef<EventTarget>(null);
+
+    useEffect(() => {
+        if (dragging) {
+            console.log("hi");
+            document.addEventListener('mousemove', handlePieceMove);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handlePieceMove);
+        }
+    }, [dragging]);
+
     const createChessBoard = (boardStr: string) => {
         if (boardStr.length === 0) {
             boardStr = STARTING_BLACK + "|" + STARTING_WHITE;
@@ -22,7 +37,10 @@ const ChessBoard = (props: ChessBoardProps) => {
         for (let row = BOARD_SIZE; row > 0; row--) {
             let column = [];
             for (let col = 0; col < BOARD_SIZE; col++) {
-                column.push(<ChessSquare isWhiteSquare={(row + col) % 2 == 0} />);
+                column.push(<ChessSquare isWhiteSquare={(row + col) % 2 == 0}
+                    handlePieceMove={handlePieceMove}
+                    handlePieceMoveEnd={handlePieceMoveEnd}
+                />);
             }
             newBoard.push(column);
         }
@@ -37,7 +55,8 @@ const ChessBoard = (props: ChessBoardProps) => {
                     isWhiteSquare={(rowNumber + columnNumber) % 2 == 0}
                     chessPieceProps={new ChessPieceProps(piece.rank, piece.isWhite, piece.pos)}
                     handlePieceMoveStart={handlePieceMoveStart}
-                    handlePieceMoveEnd={() => { }}
+                    handlePieceMove={handlePieceMove}
+                    handlePieceMoveEnd={handlePieceMoveEnd}
                 />;
         });
 
@@ -55,8 +74,39 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handlePieceMoveStart = (event: DragEvent<HTMLDivElement>, pieceRank: PieceRank, pos: string, isWhite: boolean) => {
+    const handlePieceMoveStart = (event: MouseEvent<HTMLImageElement>, pieceRank: PieceRank, pos: string, isWhite: boolean) => {
+        if (event.button !== 0) {
+            return;
+        }
+        let target = event.currentTarget;
+        dragRef.current = target;
+        let clone = target.cloneNode(true).firstChild!;
+        target.appendChild(clone);
+        setDraggedClone(clone);
+        event.stopPropagation();
+        event.preventDefault();
+        setDragging(true);
         showAvailableMoves(pieceRank, pos, isWhite);
+    }
+
+    const handlePieceMove = (event: MouseEvent) => {
+        console.log("HELLO!?!");
+        if (draggedClone) {
+            draggedClone.style.position = "absolute";
+            draggedClone.style.zIndex = "1000";
+            draggedClone.style.left = (event.pageX - 64) + "px";
+            draggedClone.style.top = (event.pageY - 64) + "px";
+        }
+    }
+
+    const handlePieceMoveEnd = (event: MouseEvent<HTMLImageElement>) => {
+        console.log("done moving");
+        console.log(dragRef.current);
+        setDragging(false);
+        if (draggedClone) {
+            draggedClone.remove();
+            setDraggedClone(undefined);
+        }
     }
 
     const showAvailableMoves = (pieceType: PieceRank, pos: string, isWhite: boolean) => {
@@ -172,7 +222,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
             if (tSquare !== null) {
                 const topLeftSquare = document.getElementById("" + (top * 8 + left))?.children[0];
-                if (tSquare?.childElementCount === 0) {
+                if (topLeftSquare?.childElementCount === 0) {
                     validSquares.push(top * 8 + left);
                 }
             }
