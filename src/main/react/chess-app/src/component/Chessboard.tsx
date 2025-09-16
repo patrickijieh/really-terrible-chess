@@ -94,7 +94,6 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const handlePieceMove = (event: MouseEvent) => {
-        console.log("HELLO!?!");
         moveClone(event, draggedClone);
     }
 
@@ -108,7 +107,6 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const handlePieceMoveEnd = (_event: MouseEvent<Element>) => {
-        console.log("done moving");
         setDragging(false);
         if (draggedClone) {
             draggedClone.remove();

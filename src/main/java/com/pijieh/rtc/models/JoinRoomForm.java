@@ -1,4 +1,4 @@
-package com.pijieh.chess.models;
+package com.pijieh.rtc.models;
 
 import lombok.Value;
 

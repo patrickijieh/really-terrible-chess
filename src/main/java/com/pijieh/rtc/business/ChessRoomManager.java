@@ -1,4 +1,4 @@
-package com.pijieh.chess.business;
+package com.pijieh.rtc.business;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
@@ -9,10 +9,10 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.pijieh.chess.business.models.ChessGame;
-import com.pijieh.chess.business.models.Player;
-import com.pijieh.chess.database.ChessDatabase;
-import com.pijieh.chess.database.ChessDatabase.SessionCode;
+import com.pijieh.rtc.business.models.ChessGame;
+import com.pijieh.rtc.business.models.Player;
+import com.pijieh.rtc.database.ChessDatabase;
+import com.pijieh.rtc.database.ChessDatabase.SessionCode;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,4 +1,4 @@
-package com.pijieh.chess.websocket;
+package com.pijieh.rtc.websocket;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import com.pijieh.chess.business.ChessRoomManager;
+import com.pijieh.rtc.business.ChessRoomManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

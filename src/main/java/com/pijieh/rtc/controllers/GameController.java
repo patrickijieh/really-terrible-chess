@@ -1,4 +1,4 @@
-package com.pijieh.chess.controllers;
+package com.pijieh.rtc.controllers;
 
 import java.util.List;
 import java.util.Map;
@@ -17,8 +17,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.google.gson.Gson;
-import com.pijieh.chess.business.ChessRoomManager;
-import com.pijieh.chess.business.models.Player;
+import com.pijieh.rtc.business.ChessRoomManager;
+import com.pijieh.rtc.business.models.Player;
 
 import lombok.extern.slf4j.Slf4j;
 

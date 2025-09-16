@@ -1,4 +1,4 @@
-package com.pijieh.chess;
+package com.pijieh.rtc;
 
 import java.sql.SQLException;
 
@@ -7,14 +7,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.pijieh.chess.business.ChessRoomManager;
-import com.pijieh.chess.database.ChessDatabase;
+import com.pijieh.rtc.business.ChessRoomManager;
+import com.pijieh.rtc.database.ChessDatabase;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootApplication
-public class ChessApplication {
+public class RTCApp {
 
     @Value("${chess.games.maximum}")
     int maxNumberOfChessGames;
@@ -30,6 +30,6 @@ public class ChessApplication {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(ChessApplication.class, args);
+        SpringApplication.run(RTCApp.class, args);
     }
 }

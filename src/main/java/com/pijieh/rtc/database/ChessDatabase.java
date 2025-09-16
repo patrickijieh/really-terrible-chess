@@ -1,4 +1,4 @@
-package com.pijieh.chess.database;
+package com.pijieh.rtc.database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -1,13 +1,13 @@
-package com.pijieh.chess;
+package com.pijieh.rtc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ChessApplicationTests {
+class RTCAppTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

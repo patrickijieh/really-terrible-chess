@@ -1,4 +1,4 @@
-package com.pijieh.chess.controllers;
+package com.pijieh.rtc.controllers;
 
 import java.util.Map;
 import java.util.Optional;
@@ -11,9 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import com.google.gson.Gson;
-import com.pijieh.chess.business.ChessRoomManager;
-import com.pijieh.chess.models.CreateRoomForm;
-import com.pijieh.chess.models.JoinRoomForm;
+import com.pijieh.rtc.business.ChessRoomManager;
+import com.pijieh.rtc.models.CreateRoomForm;
+import com.pijieh.rtc.models.JoinRoomForm;
 
 import lombok.extern.slf4j.Slf4j;
 

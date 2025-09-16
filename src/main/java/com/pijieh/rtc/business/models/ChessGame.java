@@ -1,4 +1,4 @@
-package com.pijieh.chess.business.models;
+package com.pijieh.rtc.business.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
