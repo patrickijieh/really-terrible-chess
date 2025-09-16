@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import ChessBoard from "./Chessboard";
 
 const Game = () => {
-    const [wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
-    const [boardStr, setBoardStr] = useState<string>("");
+    const [_wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
+    const [boardStr, _setBoardStr] = useState<string>("");
     useEffect(() => { startWebSocketClient() }, []);
 
     const startWebSocketClient = () => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent, type JSX, type MouseEvent } from "react";
+import { useRef, useState, type JSX, type MouseEvent } from "react";
 import "../styles.css";
 import { PieceRank, ChessPieceType, ChessBoardProps, ChessPieceProps } from "../types";
 
@@ -14,17 +14,6 @@ const ChessBoard = (props: ChessBoardProps) => {
     const [draggedClone, setDraggedClone] = useState<HTMLImageElement>();
     const [dragging, setDragging] = useState(false);
     const dragRef = useRef<EventTarget>(null);
-
-    useEffect(() => {
-        if (dragging) {
-            console.log("hi");
-            document.addEventListener('mousemove', handlePieceMove);
-        }
-
-        return () => {
-            document.removeEventListener('mousemove', handlePieceMove);
-        }
-    }, [dragging]);
 
     const createChessBoard = (boardStr: string) => {
         if (boardStr.length === 0) {
@@ -46,7 +35,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
 
         pieces.map(piece => {
-            let pos = getPosition(piece.pos);
+            let pos = convertPiecePosition(piece.pos);
             let rowNumber = pos.row;
             let columnNumber = pos.col;
 
@@ -63,7 +52,15 @@ const ChessBoard = (props: ChessBoardProps) => {
         return newBoard;
     };
 
-    const getPosition = (pos: string) => {
+    const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+        if (!dragging) {
+            return;
+        }
+
+        handlePieceMove(event);
+    }
+
+    const convertPiecePosition = (pos: string) => {
         let row = pos.charAt(1);
         let rowNumber = BOARD_SIZE - Number.parseInt(row);
         let columnNumber = pos.charCodeAt(0) - "a".charCodeAt(0);
@@ -74,15 +71,22 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handlePieceMoveStart = (event: MouseEvent<HTMLImageElement>, pieceRank: PieceRank, pos: string, isWhite: boolean) => {
+    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceRank, pos: string, isWhite: boolean) => {
         if (event.button !== 0) {
             return;
         }
         let target = event.currentTarget;
         dragRef.current = target;
         let clone = target.cloneNode(true).firstChild!;
-        target.appendChild(clone);
-        setDraggedClone(clone);
+        if (clone instanceof HTMLImageElement) {
+            target.appendChild(clone);
+            setDraggedClone(clone);
+            moveClone(event, clone);
+        }
+
+        if (target.firstChild! instanceof HTMLImageElement) {
+            target.firstChild.hidden = true;
+        }
         event.stopPropagation();
         event.preventDefault();
         setDragging(true);
@@ -91,21 +95,28 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     const handlePieceMove = (event: MouseEvent) => {
         console.log("HELLO!?!");
-        if (draggedClone) {
-            draggedClone.style.position = "absolute";
-            draggedClone.style.zIndex = "1000";
-            draggedClone.style.left = (event.pageX - 64) + "px";
-            draggedClone.style.top = (event.pageY - 64) + "px";
+        moveClone(event, draggedClone);
+    }
+
+    const moveClone = (event: MouseEvent, clone?: HTMLImageElement) => {
+        if (clone) {
+            clone.style.position = "absolute";
+            clone.style.zIndex = "1000";
+            clone.style.left = (event.pageX - 64) + "px";
+            clone.style.top = (event.pageY - 64) + "px";
         }
     }
 
-    const handlePieceMoveEnd = (event: MouseEvent<HTMLImageElement>) => {
+    const handlePieceMoveEnd = (_event: MouseEvent<Element>) => {
         console.log("done moving");
-        console.log(dragRef.current);
         setDragging(false);
         if (draggedClone) {
             draggedClone.remove();
             setDraggedClone(undefined);
+        }
+
+        if (dragRef.current instanceof Node && dragRef.current.firstChild instanceof HTMLImageElement) {
+            dragRef.current.firstChild.hidden = false;
         }
     }
 
@@ -113,7 +124,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (validMoves !== undefined && validMoves.length > 0) {
             clearValidMoves();
         }
-        let piecePosition = getPosition(pos);
+        let piecePosition = convertPiecePosition(pos);
         let row: number = piecePosition.row;
         let col: number = piecePosition.col;
         let validSquares: number[] = [];
@@ -460,7 +471,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     let num = 0;
     return (
-        <div>
+        <div onMouseMove={(event) => handleMouseMove(event)}>
             <table>
                 {board.map(row => {
                     return (<tr>
