@@ -1,12 +1,12 @@
 import { useRef, useState, type JSX, type MouseEvent } from "react";
-import "../styles.css";
-import { PieceRank, ChessPieceType, ChessBoardProps, ChessPieceProps } from "../types";
-
+import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps } from "../types";
 import ChessSquare from "./ChessSquare";
+import "../styles.css";
 
 const STARTING_WHITE: string = "Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2";
 const STARTING_BLACK: string = "Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7";
 const BOARD_SIZE: number = 8;
+const PIECE_IMG_PIXEL_SIZE: number = 128;
 
 const ChessBoard = (props: ChessBoardProps) => {
 
@@ -27,7 +27,6 @@ const ChessBoard = (props: ChessBoardProps) => {
             let column = [];
             for (let col = 0; col < BOARD_SIZE; col++) {
                 column.push(<ChessSquare isWhiteSquare={(row + col) % 2 == 0}
-                    handlePieceMove={handlePieceMove}
                     handlePieceMoveEnd={handlePieceMoveEnd}
                 />);
             }
@@ -44,7 +43,6 @@ const ChessBoard = (props: ChessBoardProps) => {
                     isWhiteSquare={(rowNumber + columnNumber) % 2 == 0}
                     chessPieceProps={new ChessPieceProps(piece.rank, piece.isWhite, piece.pos)}
                     handlePieceMoveStart={handlePieceMoveStart}
-                    handlePieceMove={handlePieceMove}
                     handlePieceMoveEnd={handlePieceMoveEnd}
                 />;
         });
@@ -71,7 +69,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceRank, pos: string, isWhite: boolean) => {
+    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string, isWhite: boolean) => {
         if (event.button !== 0) {
             return;
         }
@@ -101,8 +99,8 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (clone) {
             clone.style.position = "absolute";
             clone.style.zIndex = "1000";
-            clone.style.left = (event.pageX - 64) + "px";
-            clone.style.top = (event.pageY - 64) + "px";
+            clone.style.left = (event.pageX - PIECE_IMG_PIXEL_SIZE / 2) + "px";
+            clone.style.top = (event.pageY - PIECE_IMG_PIXEL_SIZE / 2) + "px";
         }
     }
 
@@ -118,7 +116,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const showAvailableMoves = (pieceType: PieceRank, pos: string, isWhite: boolean) => {
+    const showAvailableMoves = (pieceType: PieceType, pos: string, isWhite: boolean) => {
         if (validMoves !== undefined && validMoves.length > 0) {
             clearValidMoves();
         }
@@ -127,27 +125,27 @@ const ChessBoard = (props: ChessBoardProps) => {
         let col: number = piecePosition.col;
         let validSquares: number[] = [];
         switch (pieceType) {
-            case PieceRank.BISHOP:
+            case PieceType.BISHOP:
                 validSquares = getBishopMoves(row, col);
                 break;
-            case PieceRank.KING:
+            case PieceType.KING:
                 validSquares = getKingMoves(row, col);
                 break;
-            case PieceRank.KNIGHT:
+            case PieceType.KNIGHT:
                 validSquares = getKnightMoves(row, col);
                 break;
-            case PieceRank.PAWN:
+            case PieceType.PAWN:
                 validSquares = getPawnMoves(row, col, isWhite);
                 break;
-            case PieceRank.QUEEN:
+            case PieceType.QUEEN:
                 validSquares = getBishopMoves(row, col).concat(getRookMoves(row, col));
                 break;
-            case PieceRank.ROOK:
+            case PieceType.ROOK:
                 validSquares = getRookMoves(row, col);
                 break;
         }
         validSquares.forEach(idx => {
-            let squareElement = document.getElementById("" + idx)?.children[0];
+            let squareElement = document.getElementById(`${idx}`)?.children[0];
             let squareClass = squareElement?.className;
             squareElement?.setAttribute("class", squareClass + " valid-move");
         });
@@ -157,7 +155,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     const clearValidMoves = () => {
         for (let i = 0; i < validMoves.length; i++) {
-            const elem = document.getElementById("" + validMoves[i])?.children[0];
+            const elem = document.getElementById(`${validMoves[i]}`)?.children[0];
             const squareClass = elem?.getAttribute("class");
             if (!squareClass) {
                 continue;
@@ -172,42 +170,53 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const getBishopMoves = (row: number, col: number) => {
-        let i = 1;
         let validSquares: number[] = [];
-        while (i + row < 8 && i + col < 8) {
-            let squareElement = document.getElementById("" + ((row + i) * 8 + col + i))?.children[0];
-            if (squareElement?.childElementCount !== 0) {
-                break;
+
+        let northWestBlocked = false;
+        let southWestBlocked = false;
+        let northEastBlocked = false;
+        let southEastBlocked = false;
+
+        for (let i = 1; i < BOARD_SIZE; i++) {
+            if (!northWestBlocked && row + i < BOARD_SIZE && col + i < BOARD_SIZE) {
+                const nWestSquareId = (row + i) * BOARD_SIZE + col + i;
+                const nWestSquare = document.getElementById(`${nWestSquareId}`)?.children[0];
+                if (nWestSquare !== null && nWestSquare?.childElementCount === 0) {
+                    validSquares.push(nWestSquareId);
+                } else {
+                    northWestBlocked = true;
+                }
             }
-            validSquares.push((row + i) * 8 + col + i);
-            i++;
-        }
-        i = 1;
-        while (row - i >= 0 && i + col < 8) {
-            let squareElement = document.getElementById("" + ((row - i) * 8 + col + i))?.children[0];
-            if (squareElement?.childElementCount !== 0) {
-                break;
+
+            if (!southWestBlocked && row - i >= 0 && col + i < BOARD_SIZE) {
+                const sWestSquareId = (row - i) * BOARD_SIZE + col + i;
+                const sWestSquare = document.getElementById(`${sWestSquareId}`)?.children[0];
+                if (sWestSquare !== null && sWestSquare?.childElementCount === 0) {
+                    validSquares.push(sWestSquareId);
+                } else {
+                    southWestBlocked = true;
+                }
             }
-            validSquares.push((row - i) * 8 + col + i);
-            i++;
-        }
-        i = 1;
-        while (row - i >= 0 && col - i >= 0) {
-            let squareElement = document.getElementById("" + ((row - i) * 8 + col - i))?.children[0];
-            if (squareElement?.childElementCount !== 0) {
-                break;
+
+            if (!northEastBlocked && row + i < BOARD_SIZE && col - i >= 0) {
+                const nEastSquareId = (row + i) * BOARD_SIZE - (col - i);
+                const nEastSquare = document.getElementById(`${nEastSquareId}`)?.children[0];
+                if (nEastSquare !== null && nEastSquare?.childElementCount === 0) {
+                    validSquares.push(nEastSquareId);
+                } else {
+                    northEastBlocked = true;
+                }
             }
-            validSquares.push((row - i) * 8 + col - i);
-            i++;
-        }
-        i = 1;
-        while (i + row < 8 && col - i >= 0) {
-            let squareElement = document.getElementById("" + ((row + i) * 8 + col - i))?.children[0];
-            if (squareElement?.childElementCount !== 0) {
-                break;
+
+            if (!southEastBlocked && row - i >= 0 && col - i >= 0) {
+                const sEastSquareId = (row - i) * BOARD_SIZE - (col - i);
+                const sEastSquare = document.getElementById(`${sEastSquareId}`)?.children[0];
+                if (sEastSquare !== null && sEastSquare?.childElementCount === 0) {
+                    validSquares.push(sEastSquareId);
+                } else {
+                    southEastBlocked = true;
+                }
             }
-            validSquares.push((row + i) * 8 + col - i);
-            i++;
         }
 
         return validSquares;
@@ -220,52 +229,56 @@ const ChessBoard = (props: ChessBoardProps) => {
         const right = col + 1;
         const top = row - 1;
         const bottom = row + 1;
-        const lSquare = document.getElementById("" + (row * 8 + left))?.children[0];
-        const rSquare = document.getElementById("" + (row * 8 + right))?.children[0];
-        const tSquare = document.getElementById("" + (top * 8 + col))?.children[0];
-        const bSquare = document.getElementById("" + (bottom * 8 + col))?.children[0];
+        const lSquare = document.getElementById(`${row * BOARD_SIZE + left}`)?.children[0];
+        const rSquare = document.getElementById(`${row * BOARD_SIZE + right}`)?.children[0];
+        const tSquare = document.getElementById(`${top * BOARD_SIZE + col}`)?.children[0];
+        const bSquare = document.getElementById(`${bottom * BOARD_SIZE + col}`)?.children[0];
 
         if (lSquare !== null) {
             if (lSquare?.childElementCount === 0) {
-                validSquares.push(row * 8 + left);
+                validSquares.push(row * BOARD_SIZE + left);
             }
             if (tSquare !== null) {
-                const topLeftSquare = document.getElementById("" + (top * 8 + left))?.children[0];
+                const topLeftSquare = document.getElementById(`${top * BOARD_SIZE + left}`)
+                    ?.children[0];
                 if (topLeftSquare?.childElementCount === 0) {
-                    validSquares.push(top * 8 + left);
+                    validSquares.push(top * BOARD_SIZE + left);
                 }
             }
             if (bSquare !== null) {
-                const btmLeftSquare = document.getElementById("" + (bottom * 8 + left))?.children[0];
+                const btmLeftSquare = document.getElementById(`${bottom * BOARD_SIZE + left}`)
+                    ?.children[0];
                 if (btmLeftSquare?.childElementCount === 0) {
-                    validSquares.push(bottom * 8 + left);
+                    validSquares.push(bottom * BOARD_SIZE + left);
                 }
             }
         }
 
         if (rSquare !== null) {
             if (rSquare?.childElementCount === 0) {
-                validSquares.push(row * 8 + right);
+                validSquares.push(row * BOARD_SIZE + right);
             }
             if (tSquare !== null) {
-                const topRightSquare = document.getElementById("" + (top * 8 + right))?.children[0];
+                const topRightSquare = document.getElementById(`${top * BOARD_SIZE + right}`)
+                    ?.children[0];
                 if (topRightSquare?.childElementCount === 0) {
-                    validSquares.push(top * 8 + right);
+                    validSquares.push(top * BOARD_SIZE + right);
                 }
             }
             if (bSquare !== null) {
-                const btmRightSquare = document.getElementById("" + (bottom * 8 + right))?.children[0];
+                const btmRightSquare = document.getElementById(`${bottom * BOARD_SIZE + right}`)
+                    ?.children[0];
                 if (btmRightSquare?.childElementCount === 0) {
-                    validSquares.push(bottom * 8 + right);
+                    validSquares.push(bottom * BOARD_SIZE + right);
                 }
             }
         }
 
         if (tSquare !== null && tSquare?.childElementCount === 0) {
-            validSquares.push(top * 8 + col);
+            validSquares.push(top * BOARD_SIZE + col);
         }
         if (bSquare !== null && bSquare?.childElementCount === 0) {
-            validSquares.push(bottom * 8 + col);
+            validSquares.push(bottom * BOARD_SIZE + col);
         }
         return validSquares;
     }
@@ -277,37 +290,37 @@ const ChessBoard = (props: ChessBoardProps) => {
 
         if (row - 2 >= 0) {
             if (col - 1 >= 0) {
-                squares.push(document.getElementById("" + ((row - 2) * 8 + (col - 1))));
+                squares.push(document.getElementById(`${(row - 2) * BOARD_SIZE + (col - 1)}`));
             }
-            if (col + 1 < 8) {
-                squares.push(document.getElementById("" + ((row - 2) * 8 + (col + 1))));
+            if (col + 1 < BOARD_SIZE) {
+                squares.push(document.getElementById(`${(row - 2) * BOARD_SIZE + (col + 1)}`));
             }
         }
 
         if (row - 1 >= 0) {
             if (col - 2 >= 0) {
-                squares.push(document.getElementById("" + ((row - 1) * 8 + (col - 2))));
+                squares.push(document.getElementById(`${(row - 1) * BOARD_SIZE + (col - 2)}`));
             }
-            if (col + 2 < 8) {
-                squares.push(document.getElementById("" + ((row - 1) * 8 + (col + 2))));
+            if (col + 2 < BOARD_SIZE) {
+                squares.push(document.getElementById(`${(row - 1) * BOARD_SIZE + (col + 2)}`));
             }
         }
 
-        if (row + 2 < 8) {
+        if (row + 2 < BOARD_SIZE) {
             if (col - 1 >= 0) {
-                squares.push(document.getElementById("" + ((row + 2) * 8 + (col - 1))));
+                squares.push(document.getElementById(`${(row + 2) * BOARD_SIZE + (col - 1)}`));
             }
-            if (col + 1 < 8) {
-                squares.push(document.getElementById("" + ((row + 2) * 8 + (col + 1))));
+            if (col + 1 < BOARD_SIZE) {
+                squares.push(document.getElementById(`${(row + 2) * BOARD_SIZE + (col + 1)}`));
             }
         }
 
-        if (row + 1 < 8) {
+        if (row + 1 < BOARD_SIZE) {
             if (col - 2 >= 0) {
-                squares.push(document.getElementById("" + ((row + 1) * 8 + (col - 2))));
+                squares.push(document.getElementById(`${(row + 1) * BOARD_SIZE + (col - 2)}`));
             }
-            if (col + 2 < 8) {
-                squares.push(document.getElementById("" + ((row + 1) * 8 + (col + 2))));
+            if (col + 2 < BOARD_SIZE) {
+                squares.push(document.getElementById(`${(row + 1) * BOARD_SIZE + (col - 2)}`));
             }
         }
 
@@ -327,37 +340,35 @@ const ChessBoard = (props: ChessBoardProps) => {
         return validSquares;
     }
 
-    const getPawnMoves = (row: number, col: number, pawnIsWhite: boolean) => {
+    const getPawnMoves = (row: number, col: number, isWhitePawn: boolean) => {
 
         // if the pawn reaches the last row, its no longer a pawn. No need to check if the move goes past the last rank
         const validSquares: number[] = [];
-        if (pawnIsWhite) {
-            const firstSquareId = (row - 1) * 8 + (col);
-            let secondSquareId = -1;
-            const squareOne = document.getElementById("" + firstSquareId)?.children[0];
+        if (isWhitePawn) {
+            const firstSquareId = (row - 1) * BOARD_SIZE + (col);
+            const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
             if (squareOne?.childElementCount !== 0) {
                 return validSquares;
             }
             validSquares.push(firstSquareId);
             if (row === 6) {
-                secondSquareId = (row - 2) * 8 + (col);
-                const squareTwo = document.getElementById("" + secondSquareId)?.children[0];
+                let secondSquareId = (row - 2) * BOARD_SIZE + (col);
+                const squareTwo = document.getElementById(`${secondSquareId}`)?.children[0];
                 if (squareTwo?.childElementCount === 0) {
                     validSquares.push(secondSquareId);
                 }
             }
         }
         else {
-            const firstSquareId = (row + 1) * 8 + (col);
-            let secondSquareId = -1;
-            const squareOne = document.getElementById("" + firstSquareId)?.children[0];
+            const firstSquareId = (row + 1) * BOARD_SIZE + (col);
+            const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
             if (squareOne?.childElementCount !== 0) {
                 return validSquares;
             }
             validSquares.push(firstSquareId);
             if (row === 1) {
-                secondSquareId = (row + 2) * 8 + (col);
-                const squareTwo = document.getElementById("" + secondSquareId)?.children[0];
+                let secondSquareId = (row + 2) * BOARD_SIZE + (col);
+                const squareTwo = document.getElementById(`${secondSquareId}`)?.children[0];
                 if (squareTwo?.childElementCount === 0) {
                     validSquares.push(secondSquareId);
                 }
@@ -374,41 +385,41 @@ const ChessBoard = (props: ChessBoardProps) => {
         let btmBlocked = false;
         let leftBlocked = false;
         let rightBlocked = false;
-        for (let i = 1; i < 8; i++) {
-            if (row + i < 8) {
-                const btmSquareId = (row + i) * 8 + col;
-                const btmSquare = document.getElementById("" + btmSquareId)?.children[0];
-                if (btmSquare !== null && btmSquare?.childElementCount === 0 && !btmBlocked) {
+        for (let i = 1; i < BOARD_SIZE; i++) {
+            if (row + i < BOARD_SIZE && !btmBlocked) {
+                const btmSquareId = (row + i) * BOARD_SIZE + col;
+                const btmSquare = document.getElementById(`${btmSquareId}`)?.children[0];
+                if (btmSquare !== null && btmSquare?.childElementCount === 0) {
                     validSquares.push(btmSquareId);
                 } else {
                     btmBlocked = true;
                 }
             }
 
-            if (row - i >= 0) {
-                const topSquareId = (row - i) * 8 + col;
-                const topSquare = document.getElementById("" + topSquareId)?.children[0];
-                if (topSquare !== null && topSquare?.childElementCount === 0 && !topBlocked) {
+            if (row - i >= 0 && !topBlocked) {
+                const topSquareId = (row - i) * BOARD_SIZE + col;
+                const topSquare = document.getElementById(`${topSquareId}`)?.children[0];
+                if (topSquare !== null && topSquare?.childElementCount === 0) {
                     validSquares.push(topSquareId);
                 } else {
                     topBlocked = true;
                 }
             }
 
-            if (col + i < 8) {
-                const leftSquareId = row * 8 + (col + i);
-                const leftSquare = document.getElementById("" + leftSquareId)?.children[0];
-                if (leftSquare !== null && leftSquare?.childElementCount === 0 && !leftBlocked) {
+            if (col + i < BOARD_SIZE && !leftBlocked) {
+                const leftSquareId = row * BOARD_SIZE + (col + i);
+                const leftSquare = document.getElementById(`${leftSquareId}`)?.children[0];
+                if (leftSquare !== null && leftSquare?.childElementCount === 0) {
                     validSquares.push(leftSquareId);
                 } else {
                     leftBlocked = true;
                 }
             }
 
-            if (col - i >= 0) {
-                const rightSquareId = row * 8 + (col - i);
-                const rightSquare = document.getElementById("" + rightSquareId)?.children[0];
-                if (rightSquare !== null && rightSquare?.childElementCount === 0 && !rightBlocked) {
+            if (col - i >= 0 && !rightBlocked) {
+                const rightSquareId = row * BOARD_SIZE + (col - i);
+                const rightSquare = document.getElementById(`${rightSquareId}`)?.children[0];
+                if (rightSquare !== null && rightSquare?.childElementCount === 0) {
                     validSquares.push(rightSquareId);
                 } else {
                     rightBlocked = true;
@@ -428,34 +439,34 @@ const ChessBoard = (props: ChessBoardProps) => {
                 continue;
             }
 
-            let type: PieceRank;
+            let type: PieceType;
             switch (boardStr.charAt(i)) {
                 case "R":
-                    type = PieceRank.ROOK;
+                    type = PieceType.ROOK;
                     break;
                 case "N":
-                    type = PieceRank.KNIGHT;
+                    type = PieceType.KNIGHT;
                     break;
                 case "B":
-                    type = PieceRank.BISHOP;
+                    type = PieceType.BISHOP;
                     break;
                 case "Q":
-                    type = PieceRank.QUEEN;
+                    type = PieceType.QUEEN;
                     break;
                 case "K":
-                    type = PieceRank.KING;
+                    type = PieceType.KING;
                     break;
                 default:
-                    type = PieceRank.PAWN;
+                    type = PieceType.PAWN;
                     break;
             }
 
-            let piece: ChessPieceType;
-            if (type != PieceRank.PAWN) {
-                piece = new ChessPieceType(type, isWhite, boardStr.substring(i + 1, i + 3));
+            let piece: ChessPieceInfo;
+            if (type != PieceType.PAWN) {
+                piece = new ChessPieceInfo(type, isWhite, boardStr.substring(i + 1, i + 3));
                 i += 2;
             } else {
-                piece = new ChessPieceType(type, isWhite, boardStr.substring(i, i + 2));
+                piece = new ChessPieceInfo(type, isWhite, boardStr.substring(i, i + 2));
                 i++;
             }
 
@@ -467,15 +478,17 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     const board = createChessBoard(props.board);
 
-    let num = 0;
+    let squareId = 0;
     return (
-        <div onMouseMove={(event) => handleMouseMove(event)}>
+        <div
+            onMouseMove={(event) =>
+                handleMouseMove(event)}>
             <table>
                 {board.map(row => {
                     return (<tr>
                         {row.map(elem => {
-                            let td = <td key={num} id={"" + num}>{elem}</td>;
-                            num++;
+                            let td = <td key={squareId} id={`${squareId}`}>{elem}</td>;
+                            squareId++;
                             return td;
                         })}
                     </tr>)

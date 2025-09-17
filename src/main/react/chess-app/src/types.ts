@@ -2,11 +2,11 @@ type GameInfo = {
     gameId: string
 };
 
-class ChessPieceType {
-    private readonly rank_: PieceRank;
+class ChessPieceInfo {
+    private readonly rank_: PieceType;
     private readonly isWhite_: boolean;
     private readonly pos_: string;
-    constructor(rank: PieceRank, isWhite: boolean, pos: string) {
+    constructor(rank: PieceType, isWhite: boolean, pos: string) {
         this.isWhite_ = isWhite;
         this.rank_ = rank;
         this.pos_ = pos;
@@ -34,10 +34,10 @@ class ChessBoardProps {
 }
 
 class ChessPieceProps {
-    rank: PieceRank;
+    rank: PieceType;
     isWhite: boolean;
     pos: string;
-    constructor(rank: PieceRank, isWhite: boolean, pos: string) {
+    constructor(rank: PieceType, isWhite: boolean, pos: string) {
         this.rank = rank;
         this.isWhite = isWhite;
         this.pos = pos;
@@ -48,13 +48,11 @@ class ChessSquareProps {
     chessPieceProps?: ChessPieceProps;
     handlePieceMoveStart?: Function;
     handlePieceMoveEnd?: Function;
-    handlePieceMove: Function;
     isWhiteSquare: boolean;
 
-    constructor(isWhiteSquare: boolean, move: Function, pieceProps?: ChessPieceProps, moveStart?: Function,
+    constructor(isWhiteSquare: boolean, pieceProps?: ChessPieceProps, moveStart?: Function,
         moveEnd?: Function) {
         this.isWhiteSquare = isWhiteSquare;
-        this.handlePieceMove = move;
         if (pieceProps) {
             this.chessPieceProps = pieceProps;
         }
@@ -67,7 +65,7 @@ class ChessSquareProps {
     }
 }
 
-enum PieceRank {
+enum PieceType {
     PAWN = "PAWN",
     KNIGHT = "KNIGHT",
     BISHOP = "BISHOP",
@@ -77,4 +75,4 @@ enum PieceRank {
 }
 
 export type { GameInfo };
-export { ChessPieceType, PieceRank, ChessPieceProps, ChessBoardProps, ChessSquareProps };
+export { ChessPieceInfo, PieceType, ChessPieceProps, ChessBoardProps, ChessSquareProps };

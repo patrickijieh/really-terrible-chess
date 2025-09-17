@@ -1,4 +1,4 @@
-import { PieceRank, ChessPieceProps } from "../types.ts"
+import { PieceType, ChessPieceProps } from "../types.ts"
 
 import whiteRook from "../chess-pieces/white-rook.png";
 import blackRook from "../chess-pieces/black-rook.png";
@@ -13,28 +13,28 @@ import blackKnight from "../chess-pieces/black-knight.png";
 import whitePawn from "../chess-pieces/white-pawn.png";
 import blackPawn from "../chess-pieces/black-pawn.png";
 
-const ChessPiece = (props: ChessPieceProps) => {
+const ChessPiece = ({ rank, isWhite }: ChessPieceProps) => {
 
     let imgSrc: string;
 
-    switch (props.rank) {
-        case PieceRank.ROOK:
-            imgSrc = props.isWhite ? whiteRook : blackRook;
+    switch (rank) {
+        case PieceType.ROOK:
+            imgSrc = isWhite ? whiteRook : blackRook;
             break;
-        case PieceRank.QUEEN:
-            imgSrc = props.isWhite ? whiteQueen : blackQueen;
+        case PieceType.QUEEN:
+            imgSrc = isWhite ? whiteQueen : blackQueen;
             break;
-        case PieceRank.KING:
-            imgSrc = props.isWhite ? whiteKing : blackKing;
+        case PieceType.KING:
+            imgSrc = isWhite ? whiteKing : blackKing;
             break;
-        case PieceRank.BISHOP:
-            imgSrc = props.isWhite ? whiteBishop : blackBishop;
+        case PieceType.BISHOP:
+            imgSrc = isWhite ? whiteBishop : blackBishop;
             break;
-        case PieceRank.KNIGHT:
-            imgSrc = props.isWhite ? whiteKnight : blackKnight;
+        case PieceType.KNIGHT:
+            imgSrc = isWhite ? whiteKnight : blackKnight;
             break;
-        case PieceRank.PAWN:
-            imgSrc = props.isWhite ? whitePawn : blackPawn;
+        case PieceType.PAWN:
+            imgSrc = isWhite ? whitePawn : blackPawn;
             break;
     }
 
@@ -42,7 +42,7 @@ const ChessPiece = (props: ChessPieceProps) => {
     return (
         <>
             <img src={imgSrc}
-                alt={"" + (props.isWhite ? "WHITE " : "BLACK ") + props.rank}
+                alt={`${isWhite ? "WHITE" : "BLACK"} ${rank}`}
                 draggable={true}
             />
         </>

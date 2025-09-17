@@ -3,14 +3,14 @@ import ChessPiece from "./ChessPiece";
 import "../styles.css";
 
 
-const ChessSquare = (props: ChessSquareProps) => {
+const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd, isWhiteSquare }: ChessSquareProps) => {
 
-    let squareClass = "cell " + (props.isWhiteSquare ? "cell-white" : "cell-black");
-    if (props.chessPieceProps === undefined) {
+    let squareClass = "cell " + (isWhiteSquare ? "cell-white" : "cell-black");
+    if (chessPieceProps === undefined) {
         return (
             <div
                 className={squareClass}
-                onMouseUp={(event) => { props.handlePieceMoveEnd!(event) }}
+                onMouseUp={(event) => handlePieceMoveEnd!(event)}
             >
             </div>
         )
@@ -18,15 +18,16 @@ const ChessSquare = (props: ChessSquareProps) => {
 
     return (
         <div
-            onMouseDown={(event) => props.handlePieceMoveStart!(event,
-                props.chessPieceProps!.rank, props.chessPieceProps!.pos, props.chessPieceProps!.isWhite)}
-            onMouseUp={(event) => { props.handlePieceMoveEnd!(event) }}
+            onMouseDown={(event) =>
+                handlePieceMoveStart!(event, chessPieceProps!.rank, chessPieceProps!.pos,
+                    chessPieceProps!.isWhite)}
+            onMouseUp={(event) => handlePieceMoveEnd!(event)}
             className={squareClass}
         >
             <ChessPiece
-                rank={props.chessPieceProps.rank}
-                isWhite={props.chessPieceProps.isWhite}
-                pos={props.chessPieceProps.pos}
+                rank={chessPieceProps.rank}
+                isWhite={chessPieceProps.isWhite}
+                pos={chessPieceProps.pos}
             />
         </div>
     )

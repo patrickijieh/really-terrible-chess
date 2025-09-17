@@ -1,16 +1,17 @@
 import { useNavigate } from "react-router";
 import type { GameInfo } from "../types";
 import "../styles.css";
+import { useState, type ChangeEvent } from "react";
 
 const CreateRoom = () => {
     document.title = "Really Terrible Chess - Create Room";
+
+    const [name, setName] = useState("");
+
     const navigate = useNavigate();
 
-    const sendRoomCreationInfo = async (): Promise<void> => {
-        const input = document.getElementById("name") as HTMLInputElement;
-        const name: string = input.value;
-
-        if (!name) {
+    const sendRoomCreationRequest = async (): Promise<void> => {
+        if (name.length < 1) {
             return;
         }
 
@@ -31,14 +32,22 @@ const CreateRoom = () => {
         navigate("/game");
     }
 
+    const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setName(event.target.value);
+    }
+
     return (
         <div className="content">
             <h1>Really Terrible Chess - Create Room</h1>
             <p>Create a new room</p>
-            <input type="text" name="name" id="name" placeholder="Enter your name" />
+            <input type="text" name="name" id="name"
+                value={name}
+                onChange={(event) =>
+                    handleFormChange(event)}
+                placeholder="Enter your name" />
             <button
                 className="common-button"
-                onClick={sendRoomCreationInfo}>
+                onClick={(_e) => sendRoomCreationRequest()}>
                 Create Room!
             </button>
         </div>

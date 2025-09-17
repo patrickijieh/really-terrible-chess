@@ -35,11 +35,7 @@ const Game = () => {
         <div className="content">
             <h1>Really Terrible Chess Game</h1>
             <h3>Session ID: {getSessionIdString()}</h3>
-            <div
-                id="chesstable"
-                onDragStartCapture={() => { }}
-                onDragEndCapture={() => { }}
-            >
+            <div id="chesstable">
                 <ChessBoard board={boardStr} />
             </div>
         </div>

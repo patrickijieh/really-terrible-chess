@@ -1,18 +1,21 @@
 import { useNavigate } from "react-router";
 import type { GameInfo } from "../types";
 import "../styles.css";
+import { useState, type ChangeEvent } from "react";
 
 const JoinRoom = () => {
     document.title = "Really Terrible Chess - Join Room";
+
+    const [state, setState] = useState({
+        name: "",
+        gameId: ""
+    });
+
     const navigate = useNavigate();
 
-    const sendRoomJoinInfo = async (): Promise<void> => {
-        const name_input = document.getElementById("name") as HTMLInputElement;
-        const gameId_input = document.getElementById("gameId") as HTMLInputElement;
-        const name: string = name_input.value;
-        const gameId: string = gameId_input.value;
+    const sendRoomJoinRequest = async (): Promise<void> => {
 
-        if (!name || !gameId) {
+        if (state.name.length < 1 || state.gameId.length < 1) {
             return;
         }
 
@@ -22,27 +25,42 @@ const JoinRoom = () => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "name": name,
-                "gameId": gameId
+                "name": state.name,
+                "gameId": state.gameId
             })
         });
 
         const data: GameInfo = await response.json();
         localStorage.setItem("gameId", data.gameId);
-        localStorage.setItem("name", name);
+        localStorage.setItem("name", state.name);
 
         navigate("/game");
+    }
+
+    const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setState({
+            ...state,
+            [event.target.id]: event.target.value
+        });
     }
 
     return (
         <div className="content">
             <h1>Online Chess - Join Room</h1>
             <p>Join a Room</p>
-            <input type="text" name="name" id="name" placeholder="Enter your name" />
-            <input type="text" name="gameId" id="gameId" placeholder="Enter the game ID" />
+            <input type="text" name="name" id="name"
+                value={state.name}
+                onChange={(event) =>
+                    handleFormChange(event)}
+                placeholder="Enter your name" />
+            <input type="text" name="gameId" id="gameId"
+                value={state.gameId}
+                onChange={(event) =>
+                    handleFormChange(event)}
+                placeholder="Enter the game ID" />
             <button
                 className="common-button"
-                onClick={sendRoomJoinInfo}>
+                onClick={(_e) => sendRoomJoinRequest()}>
                 Join Room!
             </button>
         </div>
