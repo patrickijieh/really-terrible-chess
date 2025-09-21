@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import ChessBoard from "./Chessboard";
 
 const Game = () => {
+    document.title = "Really Terrible Chess";
+
     const [_wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
-    const [boardStr, _setBoardStr] = useState<string>("");
+    const [boardStr, _setBoardStr] = useState("");
     useEffect(() => { startWebSocketClient() }, []);
 
     const startWebSocketClient = () => {
@@ -30,7 +32,6 @@ const Game = () => {
         return gameId;
     }
 
-    document.title = "Really Terrible Chess";
     return (
         <div className="content">
             <h1>Really Terrible Chess Game</h1>

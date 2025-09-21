@@ -1,4 +1,4 @@
-package com.pijieh.rtc.models;
+package com.pijieh.rtc.business.models;
 
 import lombok.Value;
 

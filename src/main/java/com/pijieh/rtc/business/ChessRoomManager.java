@@ -1,9 +1,6 @@
 package com.pijieh.rtc.business;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,7 +23,7 @@ public final class ChessRoomManager {
     int maxGames;
     int maxPlayers;
     ConcurrentHashMap<String, ChessGame> chessGames;
-    ConcurrentHashMap<String, Player> playerMap;
+    ConcurrentHashMap<String, Player> players;
 
     public ChessRoomManager(int maxNumberOfChessGames) {
         this.maxGames = maxNumberOfChessGames;
@@ -34,41 +31,47 @@ public final class ChessRoomManager {
         ConcurrentHashMap<String, ChessGame> games = new ConcurrentHashMap<>(maxGames);
         ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>(maxPlayers);
         this.chessGames = games;
-        this.playerMap = players;
+        this.players = players;
     }
 
-    public Optional<String> createRoom(String owner) {
+    public Optional<String> createRoom(String ownerName) {
         final String gameId = Long.toHexString(UUID.randomUUID().getMostSignificantBits())
                 .toUpperCase();
 
-        if (database.createSession(gameId, owner) != SessionCode.SESSION_CREATED) {
+        if (database.createSession(gameId, ownerName) != SessionCode.SESSION_CREATED) {
             return Optional.empty();
         }
-        Player playerOne = new Player(owner);
+        Player playerOne = new Player(ownerName);
         ChessGame newGame = new ChessGame(playerOne);
         chessGames.put(gameId, newGame);
         log.info("Created new game with id: {}", gameId);
         return Optional.of(gameId);
     }
 
-    public Optional<String> joinRoom(String gameId, String player) {
+    public Optional<String> joinRoom(String gameId, String playerName) {
         if (database.joinSession(gameId) != SessionCode.SESSION_FOUND) {
             return Optional.empty();
         }
 
         ChessGame game = chessGames.get(gameId);
-        game.setPlayerTwo(new Player(player));
+        if (game.getPlayerTwo() != null
+                && !game.getPlayerTwo().getName().equals(playerName)) {
+
+            return Optional.empty();
+        }
+
+        game.setPlayerTwo(new Player(playerName));
         return Optional.of(gameId);
     }
 
     public boolean playerIsInRoom(String gameId, String playerName) {
         ChessGame game = chessGames.get(gameId);
 
-        if (null == game) {
+        if (game == null) {
             return false;
         }
 
-        if (null == game.getPlayerTwo()) {
+        if (game.getPlayerTwo() == null) {
             return game.getPlayerOne().getName().equals(playerName);
         }
 
@@ -79,58 +82,56 @@ public final class ChessRoomManager {
     public void setPlayerSession(String socketSessionId, String playerName, String gameId) throws RuntimeException {
         ChessGame game = chessGames.get(gameId);
 
-        if (null == game) {
+        // Should not happen
+        if (game == null) {
             throw new RuntimeException("game id is somehow not valid; resort to crashing & burning");
         }
 
         if (game.getPlayerOne().getName().equals(playerName)) {
             game.getPlayerOne().setSocketSessionId(socketSessionId);
             game.getPlayerOne().setGameId(gameId);
-            playerMap.put(socketSessionId, game.getPlayerOne());
+            players.put(socketSessionId, game.getPlayerOne());
         } else {
             game.getPlayerTwo().setSocketSessionId(socketSessionId);
             game.getPlayerTwo().setGameId(gameId);
-            playerMap.put(socketSessionId, game.getPlayerTwo());
+            players.put(socketSessionId, game.getPlayerTwo());
         }
 
-        if (game.isReady()) {
+        if (isGameReady(gameId)) {
             log.info("game {} is ready to start", gameId);
         }
     }
 
-    public Player[] getPlayersFromGame(String gameId) {
-        Player[] players = new Player[2];
-        ChessGame game = this.chessGames.get(gameId);
-
-        if (null == game) {
-            return players;
-        }
-
-        players[0] = game.getPlayerOne();
-        players[1] = game.getPlayerTwo();
-        return players;
-    }
-
-    public List<Map<String, String>> getPlayerNamesFromGame(String gameId) {
-        Player[] players = getPlayersFromGame(gameId);
-
-        List<Map<String, String>> playerNames = new ArrayList<>();
-        for (int i = 0; i < players.length; i++) {
-            if (players[i] == null) {
-                continue;
-            }
-            Map<String, String> playerName = Map.of("name", players[i].getName());
-            playerNames.add(playerName);
-        }
-
-        return playerNames;
-    }
-
     public void removePlayer(String socketSessionId) {
-        Player disconnectedPlayer = playerMap.get(socketSessionId);
+        Player disconnectedPlayer = players.get(socketSessionId);
+
+        if (disconnectedPlayer == null) {
+            log.info("No session found with socket id {}", socketSessionId);
+            return;
+        }
 
         destroyGame(disconnectedPlayer.getGameId());
-        playerMap.remove(socketSessionId);
+        players.remove(socketSessionId);
+    }
+
+    public Player[] getPlayersFromGame(String gameId) {
+        ChessGame game = this.chessGames.get(gameId);
+
+        if (game == null) {
+            return new Player[0];
+        }
+
+        if (game.getPlayerTwo() == null) {
+            return new Player[] { game.getPlayerOne() };
+        }
+
+        return new Player[] { game.getPlayerOne(), game.getPlayerTwo() };
+    }
+
+    public boolean isGameReady(String gameId) {
+        ChessGame game = chessGames.get(gameId);
+
+        return (game != null) ? game.isReady() : false;
     }
 
     private void destroyGame(String gameId) {

@@ -4,8 +4,7 @@ import "../styles.css";
 
 
 const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd, isWhiteSquare }: ChessSquareProps) => {
-
-    let squareClass = "cell " + (isWhiteSquare ? "cell-white" : "cell-black");
+    let squareClass = `cell ${isWhiteSquare ? "cell-white" : "cell-black"}`;
     if (chessPieceProps === undefined) {
         return (
             <div

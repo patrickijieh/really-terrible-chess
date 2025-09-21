@@ -1,23 +1,23 @@
 package com.pijieh.rtc.controllers;
 
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.socket.WebSocketSession;
 
 import com.google.gson.Gson;
 import com.pijieh.rtc.business.ChessRoomManager;
+import com.pijieh.rtc.business.messaging.ErrorMessage;
+import com.pijieh.rtc.business.messaging.JoinMessage;
+import com.pijieh.rtc.business.messaging.ReadyMessage;
 import com.pijieh.rtc.business.models.Player;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +29,9 @@ public class GameController {
     @Autowired
     ChessRoomManager chessRoomManager;
 
+    @Autowired
+    SimpMessagingTemplate simpMessagingTemplate;
+
     private static final Gson gson = new Gson();
 
     @GetMapping("/game")
@@ -37,24 +40,41 @@ public class GameController {
     }
 
     @MessageMapping("/join/{id}")
-    @SendTo("/game-messaging/info/{id}")
-    public ResponseEntity<String> playerJoins(@DestinationVariable(value = "id") String gameId,
-            @Payload Player player, StompHeaderAccessor headerAccessor) {
+    public void playerJoins(@DestinationVariable(value = "id") String gameId,
+            @Payload Player player, StompHeaderAccessor headerAccessor, WebSocketSession session) {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         if (!chessRoomManager.playerIsInRoom(gameId, player.getName())) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId,
+                    gson.toJson(new ErrorMessage(gameId, HttpStatus.NOT_FOUND, "game not found")));
+
+            return;
         }
 
         log.info("player {} has joined session {}", player.getName(), gameId);
 
-        chessRoomManager.setPlayerSession(headerAccessor.getSessionId(), player.getName(), gameId);
+        chessRoomManager.setPlayerSession(headerAccessor.getSessionId(), player.getName(),
+                gameId);
 
-        List<Map<String, String>> playerNames = chessRoomManager.getPlayerNamesFromGame(gameId);
+        final Player[] players = chessRoomManager.getPlayersFromGame(gameId);
 
-        final String body = gson.toJson(Map.of("players", playerNames));
-        return new ResponseEntity<>(body, headers, HttpStatus.OK);
+        final String body = gson.toJson(new JoinMessage(gameId,
+                players));
+
+        simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId, body);
+
+        if (chessRoomManager.isGameReady(gameId)) {
+            sendGameReadyMessage(gameId, players[0].getName(), players[1].getName());
+        }
+    }
+
+    private void sendGameReadyMessage(String gameId, String playerA, String playerB) {
+        final String destination = "/" + gameId;
+        final String payload = gson.toJson(new ReadyMessage(gameId));
+
+        simpMessagingTemplate.convertAndSendToUser(playerA, destination, payload);
+        simpMessagingTemplate.convertAndSendToUser(playerB, destination, payload);
     }
 }

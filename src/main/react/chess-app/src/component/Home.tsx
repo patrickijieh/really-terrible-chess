@@ -4,6 +4,7 @@ import '../styles.css';
 
 const Home = () => {
     document.title = "Really Terrible Chess - Home";
+
     return (
         <div className="content">
             <h1>Welcome to Really Terrible Chess!</h1>

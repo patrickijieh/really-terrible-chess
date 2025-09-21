@@ -13,6 +13,6 @@ public class Player {
     @NonNull
     String name;
 
-    String socketSessionId;
-    String gameId;
+    transient String socketSessionId;
+    transient String gameId;
 }

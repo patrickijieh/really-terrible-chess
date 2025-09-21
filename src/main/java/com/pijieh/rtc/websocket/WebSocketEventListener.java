@@ -32,7 +32,7 @@ public class WebSocketEventListener {
         log.debug("Session id {} disconnected", headerAccessor.getSessionId());
 
         // TODO: Should be handled through something different (a player manager?)
-        log.info("finding and removing session with id {}", headerAccessor.getSessionId());
+        log.info("finding and removing session associated with socket sessionid {}", headerAccessor.getSessionId());
         chessRoomManager.removePlayer(headerAccessor.getSessionId());
     }
 }

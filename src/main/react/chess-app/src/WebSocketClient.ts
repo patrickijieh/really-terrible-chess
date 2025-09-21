@@ -32,6 +32,10 @@ class WebSocketClient {
             (message: Message) => this.handleGameInfo(message)
         );
 
+        this.stmpClient_.subscribe(`/user/${this.username_}/${this.gameId_}`,
+            (message: Message) => this.handleUserMessaging(message)
+        )
+
         this.stmpClient_.publish({
             destination: `/game-messaging/join/${this.gameId_}`,
             body: JSON.stringify({
@@ -54,6 +58,10 @@ class WebSocketClient {
     }
 
     handleGameInfo(message: Message) {
+        console.log(message.body);
+    }
+
+    handleUserMessaging(message: Message) {
         console.log(message.body);
     }
 }
