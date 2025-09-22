@@ -13,7 +13,14 @@ export default defineConfig({
         },
         cleanDistPath: true,
     },
+    source: {
+        entry: {
+            index: "./src/index.tsx",
+            game: "./src/game.tsx"
+        }
+    },
     html: {
+        mountId: "body",
         favicon: "./src/favicon/favicon.ico",
         appIcon: {
             name: "chess",

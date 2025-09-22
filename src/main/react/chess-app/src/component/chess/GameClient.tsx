@@ -1,7 +1,7 @@
-import { WebSocketClient } from "../WebSocketClient";
-import "../styles.css";
+import { WebSocketClient } from "../../WebSocketClient";
 import { useEffect, useState } from "react";
 import ChessBoard from "./Chessboard";
+import "../../styles.css";
 
 const Game = () => {
     document.title = "Really Terrible Chess";
@@ -25,7 +25,6 @@ const Game = () => {
 
     return (
         <div className="content">
-            <h1>Really Terrible Chess Game</h1>
             <SessionID />
             <div id="chesstable" className="chesstable">
                 <ChessBoard board={boardStr} />

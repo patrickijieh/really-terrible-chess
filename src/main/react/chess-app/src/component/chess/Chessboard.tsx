@@ -1,7 +1,7 @@
 import { useRef, useState, type JSX, type MouseEvent } from "react";
-import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps } from "../types";
+import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps } from "./types";
 import ChessSquare from "./ChessSquare";
-import "../styles.css";
+import "../../styles.css";
 
 const STARTING_WHITE: string = "Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2";
 const STARTING_BLACK: string = "Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7";

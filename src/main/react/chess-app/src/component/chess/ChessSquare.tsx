@@ -1,6 +1,6 @@
-import { ChessSquareProps } from "../types.ts";
+import { ChessSquareProps } from "./types.ts";
 import ChessPiece from "./ChessPiece";
-import "../styles.css";
+import "../../styles.css";
 
 
 const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd, isWhiteSquare }: ChessSquareProps) => {

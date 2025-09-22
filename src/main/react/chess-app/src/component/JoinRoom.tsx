@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router";
-import type { GameInfo } from "../types";
 import "../styles.css";
 import { useState, type ChangeEvent } from "react";
 
@@ -10,8 +8,6 @@ const JoinRoom = () => {
         name: "",
         gameId: ""
     });
-
-    const navigate = useNavigate();
 
     const sendRoomJoinRequest = async (): Promise<void> => {
 
@@ -30,11 +26,11 @@ const JoinRoom = () => {
             })
         });
 
-        const data: GameInfo = await response.json();
+        const data: { gameId: string } = await response.json();
         localStorage.setItem("gameId", data.gameId);
         localStorage.setItem("name", state.name);
 
-        navigate("/game");
+        window.location.href = "./game";
     }
 
     const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {

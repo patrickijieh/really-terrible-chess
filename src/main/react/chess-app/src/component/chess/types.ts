@@ -1,7 +1,3 @@
-type GameInfo = {
-    gameId: string
-};
-
 class ChessPieceInfo {
     private readonly rank_: PieceType;
     private readonly isWhite_: boolean;
@@ -74,5 +70,4 @@ enum PieceType {
     KING = "KING"
 }
 
-export type { GameInfo };
 export { ChessPieceInfo, PieceType, ChessPieceProps, ChessBoardProps, ChessSquareProps };
