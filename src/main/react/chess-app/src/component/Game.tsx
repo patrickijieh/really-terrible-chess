@@ -23,24 +23,31 @@ const Game = () => {
         setWsClient(newClient);
     }
 
+    return (
+        <div className="content">
+            <h1>Really Terrible Chess Game</h1>
+            <SessionID />
+            <div id="chesstable" className="chesstable">
+                <ChessBoard board={boardStr} />
+            </div>
+        </div>
+    );
+};
+
+const SessionID = () => {
     const getSessionIdString = () => {
         const gameId = localStorage.getItem("gameId");
         if (!gameId) {
-            return "NULL";
+            return null;
         }
 
         return gameId;
     }
 
     return (
-        <div className="content">
-            <h1>Really Terrible Chess Game</h1>
-            <h3>Session ID: {getSessionIdString()}</h3>
-            <div id="chesstable">
-                <ChessBoard board={boardStr} />
-            </div>
-        </div>
+        getSessionIdString() === null ?
+            (<></>) : (<h3>Session ID: {getSessionIdString()}</h3>)
     );
-};
+}
 
 export default Game;

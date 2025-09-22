@@ -46,26 +46,45 @@ const JoinRoom = () => {
 
     return (
         <div className="content">
-            <h1>Online Chess - Join Room</h1>
-            <p>Join a Room</p>
-            <input type="text" name="name" id="name"
-                value={state.name}
-                onChange={(event) =>
-                    handleFormChange(event)}
-                placeholder="Enter your name" />
-            <input type="text" name="gameId" id="gameId"
-                value={state.gameId}
-                onChange={(event) =>
-                    handleFormChange(event)}
-                placeholder="Enter the game ID" />
-            <button
-                className="common-button"
-                onClick={(_e) => sendRoomJoinRequest()}>
-                Join Room!
-            </button>
+            <h1>Really Terrible Chess - Join Room</h1>
+            <h3>Join Another Room</h3>
+            <section className="form">
+                <div className="form-body">
+                    <div className="form-item">
+                        <h4 className="form-label">
+                            Your username
+                        </h4>
+                        <input type="text" name="name" id="name" className="form-input"
+                            value={state.name}
+                            onKeyUp={(event) => {
+                                if (event.key === "Enter") { sendRoomJoinRequest() }
+                            }}
+                            onChange={(event) =>
+                                handleFormChange(event)}
+                            placeholder="Enter your name" />
+                    </div>
+                    <div className="form-item">
+                        <h4 className="form-label">
+                            Game ID
+                        </h4>
+                        <input type="text" name="gameId" id="gameId" className="form-input"
+                            value={state.gameId}
+                            onKeyUp={(event) => {
+                                if (event.key === "Enter") { sendRoomJoinRequest() }
+                            }}
+                            onChange={(event) =>
+                                handleFormChange(event)}
+                            placeholder="Enter the game ID" />
+                    </div>
+                    <button
+                        className="common-button btn"
+                        onClick={(_e) => sendRoomJoinRequest()}>
+                        Join Room!
+                    </button>
+                </div>
+            </section>
         </div>
     );
-
 };
 
 export default JoinRoom;

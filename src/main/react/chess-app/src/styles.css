@@ -1,5 +1,5 @@
 body {
-  margin: 0;
+  margin: 0; 
   color: #fff;
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   background-image: linear-gradient(to bottom, #020917, #101725);
@@ -11,7 +11,8 @@ body {
   line-height: 1.1;
   text-align: center;
   flex-direction: column;
-  justify-content: center;
+  margin-top: 4rem;
+  margin-bottom: 4rem;
 }
 
 .content h1 {
@@ -19,19 +20,44 @@ body {
   font-weight: 700;
 }
 
-.content p {
-  font-size: 1.2rem;
+.content h3 {
+  font-size: 2.4rem;
   font-weight: 400;
   opacity: 0.5;
 }
 
 .common-button {
+    border: none;
     border-radius: 5px;
     text-decoration: none;
     background-color: #008000;
     color: #ffffff;
     padding: 1rem;
     width: 5rem;
+}
+
+.btn {
+    width: 7.5rem;
+}
+
+.common-button:hover {
+    background-color: #05704B;
+}
+
+.common-button:active {
+    background-color: #06402B;
+    box-shadow: inset 0px 0px 5px #06602B;
+}
+
+.home-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.game-navigation {
+    background-color: #30303C;
+    padding: 3rem;
+    margin: 3rem;
 }
 
 .cell {
@@ -44,6 +70,51 @@ body {
     text-align: start;
 }
 
+.header {
+    position: sticky;
+    display: flex;
+    background-color: #30303C;
+    width: 100%;
+    height: 5rem;
+}
+
+.header-body {
+    display: flex;
+}
+
+.header-subsection {
+    display: flex;
+    justify-content: center;
+}
+
+.header-title {
+    margin-left: 1rem;
+    margin-right: 2rem;
+}
+
+.header-button {
+    display: flex;
+    text-decoration: none;
+    background-color: #25252C;
+    color: #ffffff;
+    padding-right: 3rem;
+    padding-left: 3rem;
+    align-items: center;
+}
+
+.header-button:hover {
+    background-color: #20202C;
+}
+
+.header-button:focus {
+    background-color: #10101C;
+    box-shadow: inset 0px 0px 5px #30303C;
+}
+
+.header-padding {
+    width: 10%;
+}
+
 .cell-black {
     background-color: #C19770;
 }
@@ -52,15 +123,51 @@ body {
     background-color: #ffffff;
 }
 
-.common-button:active {
-    background-color: #06402B;
-    color: #ffffff;
-}
-
 .dragged {
     opacity: 1.0;
 }
 
 .valid-move {
     background-color: #008000;
+}
+
+.form {
+    display: flex;
+    justify-content: center;
+}
+
+.form-body {
+    display: flex;
+    padding-top: 75px;
+    padding-bottom: 75px;
+    align-items: center;
+    width: 30%;
+    flex-direction: column;
+    background-color: #30303C;
+}
+
+.form-item {
+    display: flex;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    width: 150px;
+}
+
+.form-input {
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    background-color: #20202C;
+    color: #fff;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    height: 40px;
+}
+
+.chesstable {
+    display: flex;
+    justify-content: center;
 }

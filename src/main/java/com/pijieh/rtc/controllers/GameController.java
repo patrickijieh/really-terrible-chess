@@ -11,7 +11,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.socket.WebSocketSession;
 
 import com.google.gson.Gson;
 import com.pijieh.rtc.business.ChessRoomManager;
@@ -41,7 +40,7 @@ public class GameController {
 
     @MessageMapping("/join/{id}")
     public void playerJoins(@DestinationVariable(value = "id") String gameId,
-            @Payload Player player, StompHeaderAccessor headerAccessor, WebSocketSession session) {
+            @Payload Player player, StompHeaderAccessor headerAccessor) {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

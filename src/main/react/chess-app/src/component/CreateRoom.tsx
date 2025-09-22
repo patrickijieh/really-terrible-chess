@@ -39,17 +39,29 @@ const CreateRoom = () => {
     return (
         <div className="content">
             <h1>Really Terrible Chess - Create Room</h1>
-            <p>Create a new room</p>
-            <input type="text" name="name" id="name"
-                value={name}
-                onChange={(event) =>
-                    handleFormChange(event)}
-                placeholder="Enter your name" />
-            <button
-                className="common-button"
-                onClick={(_e) => sendRoomCreationRequest()}>
-                Create Room!
-            </button>
+            <h3>Creating a new Room</h3>
+            <section className="form">
+                <div className="form-body">
+                    <div className="form-item">
+                        <h4 className="form-label">
+                            Your username
+                        </h4>
+                        <input type="text" name="name" id="name" className="form-input"
+                            value={name}
+                            onKeyUp={(event) => {
+                                if (event.key === "Enter") { sendRoomCreationRequest() }
+                            }}
+                            onChange={(event) =>
+                                handleFormChange(event)}
+                            placeholder="Username" />
+                    </div>
+                    <button
+                        className="common-button btn"
+                        onClick={(_e) => sendRoomCreationRequest()}>
+                        Create Room
+                    </button>
+                </div>
+            </section>
         </div>
     );
 };
