@@ -1,15 +1,15 @@
 class ChessPieceInfo {
-    private readonly rank_: PieceType;
+    private readonly type_: PieceType;
     private readonly isWhite_: boolean;
     private readonly pos_: string;
     constructor(rank: PieceType, isWhite: boolean, pos: string) {
         this.isWhite_ = isWhite;
-        this.rank_ = rank;
+        this.type_ = rank;
         this.pos_ = pos;
     }
 
-    get rank() {
-        return this.rank_;
+    get type() {
+        return this.type_;
     }
 
     get isWhite() {
@@ -30,11 +30,11 @@ class ChessBoardProps {
 }
 
 class ChessPieceProps {
-    rank: PieceType;
+    type: PieceType;
     isWhite: boolean;
     pos: string;
-    constructor(rank: PieceType, isWhite: boolean, pos: string) {
-        this.rank = rank;
+    constructor(type: PieceType, isWhite: boolean, pos: string) {
+        this.type = type;
         this.isWhite = isWhite;
         this.pos = pos;
     }

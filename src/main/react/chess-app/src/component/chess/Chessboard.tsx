@@ -41,7 +41,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             newBoard[rowNumber][columnNumber] =
                 <ChessSquare
                     isWhiteSquare={(rowNumber + columnNumber) % 2 == 0}
-                    chessPieceProps={new ChessPieceProps(piece.rank, piece.isWhite, piece.pos)}
+                    chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, piece.pos)}
                     handlePieceMoveStart={handlePieceMoveStart}
                     handlePieceMoveEnd={handlePieceMoveEnd}
                 />;

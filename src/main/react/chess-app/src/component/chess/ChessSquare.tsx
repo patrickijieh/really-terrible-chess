@@ -18,13 +18,13 @@ const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd
     return (
         <div
             onMouseDown={(event) =>
-                handlePieceMoveStart!(event, chessPieceProps!.rank, chessPieceProps!.pos,
+                handlePieceMoveStart!(event, chessPieceProps!.type, chessPieceProps!.pos,
                     chessPieceProps!.isWhite)}
             onMouseUp={(event) => handlePieceMoveEnd!(event)}
             className={squareClass}
         >
             <ChessPiece
-                rank={chessPieceProps.rank}
+                type={chessPieceProps.type}
                 isWhite={chessPieceProps.isWhite}
                 pos={chessPieceProps.pos}
             />

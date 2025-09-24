@@ -13,11 +13,11 @@ import blackKnight from "./chess-pieces/black-knight.png";
 import whitePawn from "./chess-pieces/white-pawn.png";
 import blackPawn from "./chess-pieces/black-pawn.png";
 
-const ChessPiece = ({ rank, isWhite }: ChessPieceProps) => {
+const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
 
     let imgSrc: string;
 
-    switch (rank) {
+    switch (type) {
         case PieceType.ROOK:
             imgSrc = isWhite ? whiteRook : blackRook;
             break;
@@ -42,7 +42,7 @@ const ChessPiece = ({ rank, isWhite }: ChessPieceProps) => {
     return (
         <>
             <img src={imgSrc}
-                alt={`${isWhite ? "WHITE" : "BLACK"} ${rank}`}
+                alt={`${isWhite ? "WHITE" : "BLACK"} ${type}`}
                 draggable={true}
             />
         </>
