@@ -2,10 +2,10 @@ package com.pijieh.rtc.business.messaging;
 
 import org.springframework.http.HttpStatus;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.Value;
 
-@AllArgsConstructor
+@Value
 public class ErrorMessage {
     @NonNull
     String gameId;

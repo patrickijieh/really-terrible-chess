@@ -2,10 +2,10 @@ package com.pijieh.rtc.business.messaging;
 
 import com.pijieh.rtc.business.models.Player;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.Value;
 
-@AllArgsConstructor
+@Value
 public class JoinMessage {
     @NonNull
     String gameId;

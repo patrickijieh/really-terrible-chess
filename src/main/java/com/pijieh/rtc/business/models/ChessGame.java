@@ -7,6 +7,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ChessGame {
+    public enum GameState {
+        NOT_READY,
+        READY,
+        RUNNING,
+        FINISHED
+    };
+
+    @NonNull
+    String id;
 
     @NonNull
     Player playerOne;
@@ -14,16 +23,28 @@ public class ChessGame {
     Player playerTwo;
 
     @NonNull
-    Boolean started = false;
+    GameState gameState = GameState.NOT_READY;
 
-    public ChessGame(@NonNull Player owner) {
+    @NonNull
+    ChessPiece[][] chessboard;
+
+    public ChessGame(@NonNull Player owner, @NonNull String id, ChessPiece[][] startingBoard) {
         playerOne = owner;
+        playerTwo = null;
+        this.id = id;
+
+        chessboard = startingBoard;
     }
 
     public boolean isReady() {
-        if (playerTwo == null) {
-            return false;
-        }
-        return playerOne.getSocketSessionId() != null && playerTwo.getSocketSessionId() != null;
+        return gameState == GameState.READY;
+    }
+
+    public boolean isPlayerOneConnected() {
+        return playerOne != null && playerOne.getSocketSessionId() != null;
+    }
+
+    public boolean isPlayerTwoConnected() {
+        return playerTwo != null && playerTwo.getSocketSessionId() != null;
     }
 }

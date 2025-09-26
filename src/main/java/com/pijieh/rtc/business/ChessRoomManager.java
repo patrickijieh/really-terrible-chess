@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.pijieh.rtc.business.models.ChessGame;
 import com.pijieh.rtc.business.models.Player;
+import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.database.ChessDatabase;
 import com.pijieh.rtc.database.ChessDatabase.SessionCode;
 
@@ -19,6 +20,9 @@ public final class ChessRoomManager {
 
     @Autowired
     ChessDatabase database;
+
+    @Autowired
+    GameEngine gameEngine;
 
     int maxGames;
     int maxPlayers;
@@ -41,11 +45,13 @@ public final class ChessRoomManager {
         if (database.createSession(gameId, ownerName) != SessionCode.SESSION_CREATED) {
             return Optional.empty();
         }
+
         Player playerOne = new Player(ownerName);
-        ChessGame newGame = new ChessGame(playerOne);
+        ChessGame newGame = new ChessGame(playerOne, gameId,
+                gameEngine.getDefaultBoard());
         chessGames.put(gameId, newGame);
-        log.info("Created new game with id: {}", gameId);
-        return Optional.of(gameId);
+        log.info("Created new game with id: {}", newGame.getId());
+        return Optional.of(newGame.getId());
     }
 
     public Optional<String> joinRoom(String gameId, String playerName) {
@@ -61,7 +67,7 @@ public final class ChessRoomManager {
         }
 
         game.setPlayerTwo(new Player(playerName));
-        return Optional.of(gameId);
+        return Optional.of(game.getId());
     }
 
     public boolean playerIsInRoom(String gameId, String playerName) {
@@ -89,17 +95,15 @@ public final class ChessRoomManager {
 
         if (game.getPlayerOne().getName().equals(playerName)) {
             game.getPlayerOne().setSocketSessionId(socketSessionId);
-            game.getPlayerOne().setGameId(gameId);
+            game.getPlayerOne().setGameId(game.getId());
             players.put(socketSessionId, game.getPlayerOne());
         } else {
             game.getPlayerTwo().setSocketSessionId(socketSessionId);
-            game.getPlayerTwo().setGameId(gameId);
+            game.getPlayerTwo().setGameId(game.getId());
             players.put(socketSessionId, game.getPlayerTwo());
         }
 
-        if (isGameReady(gameId)) {
-            log.info("game {} is ready to start", gameId);
-        }
+        checkIfGameIsReady(game);
     }
 
     public void removePlayer(String socketSessionId) {
@@ -134,6 +138,21 @@ public final class ChessRoomManager {
         return (game != null) ? game.isReady() : false;
     }
 
+    public void startGame(String gameId) {
+        ChessGame game = chessGames.get(gameId);
+
+        if (game != null) {
+            game.setGameState(GameState.RUNNING);
+            log.info("Game session {} has started", game.getId());
+        }
+    }
+
+    public String getChessboardFromId(String gameId) {
+        ChessGame game = chessGames.get(gameId);
+
+        return (game != null) ? gameEngine.stringifyBoard(game.getChessboard()) : "";
+    }
+
     private void destroyGame(String gameId) {
         if (database.deleteSession(gameId) != SessionCode.SESSION_DELETED) {
             return;
@@ -141,5 +160,12 @@ public final class ChessRoomManager {
 
         log.info("Deleting game with id: {}", gameId);
         chessGames.remove(gameId);
+    }
+
+    private void checkIfGameIsReady(ChessGame game) {
+        if (game.isPlayerOneConnected() && game.isPlayerTwoConnected()) {
+            game.setGameState(GameState.READY);
+            log.info("game {} is ready to start", game.getId());
+        }
     }
 }

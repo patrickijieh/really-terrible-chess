@@ -1,9 +1,9 @@
 package com.pijieh.rtc.business.messaging;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
-@RequiredArgsConstructor
+@Value
 public class ReadyMessage {
     @NonNull
     String gameId;

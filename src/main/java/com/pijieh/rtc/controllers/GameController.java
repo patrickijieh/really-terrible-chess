@@ -66,6 +66,7 @@ public class GameController {
 
         if (chessRoomManager.isGameReady(gameId)) {
             sendGameReadyMessage(gameId, players[0].getName(), players[1].getName());
+            chessRoomManager.startGame(gameId);
         }
     }
 
