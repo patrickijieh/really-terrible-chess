@@ -1,17 +1,17 @@
 import { PieceType, ChessPieceProps } from "./types.ts"
 
-import whiteRook from "./chess-pieces/white-rook.png";
-import blackRook from "./chess-pieces/black-rook.png";
-import whiteQueen from "./chess-pieces/white-queen.png";
-import blackQueen from "./chess-pieces/black-queen.png";
-import whiteKing from "./chess-pieces/white-king.png";
-import blackKing from "./chess-pieces/black-king.png";
-import whiteBishop from "./chess-pieces/white-bishop.png";
-import blackBishop from "./chess-pieces/black-bishop.png";
-import whiteKnight from "./chess-pieces/white-knight.png";
-import blackKnight from "./chess-pieces/black-knight.png";
-import whitePawn from "./chess-pieces/white-pawn.png";
-import blackPawn from "./chess-pieces/black-pawn.png";
+import whiteRook from "../../img/chess-pieces/white-rook.png";
+import blackRook from "../../img/chess-pieces/black-rook.png";
+import whiteQueen from "../../img/chess-pieces/white-queen.png";
+import blackQueen from "../../img/chess-pieces/black-queen.png";
+import whiteKing from "../../img/chess-pieces/white-king.png";
+import blackKing from "../../img/chess-pieces/black-king.png";
+import whiteBishop from "../../img/chess-pieces/white-bishop.png";
+import blackBishop from "../../img/chess-pieces/black-bishop.png";
+import whiteKnight from "../../img/chess-pieces/white-knight.png";
+import blackKnight from "../../img/chess-pieces/black-knight.png";
+import whitePawn from "../../img/chess-pieces/white-pawn.png";
+import blackPawn from "../../img/chess-pieces/black-pawn.png";
 
 const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
 

@@ -1,10 +1,17 @@
 body {
   margin: 0; 
-  color: #fff;
+  color: #020917;
+  background-color: #fff;
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  background-image: linear-gradient(to bottom, #020917, #101725);
+  /* background-image: linear-gradient(to bottom, #020917, #101725); */
 }
 
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #fff;
+        background-color: #020917;
+    }
+}
 .content {
   display: flex;
   min-height: 100vh;
@@ -170,4 +177,27 @@ body {
 .chesstable {
     display: flex;
     justify-content: center;
+}
+
+.chessboard {
+    background-color: black;
+}
+
+.player-info {
+    display: flex;
+    padding: 30px;
+}
+
+.player-opponent {
+    justify-content: start;
+}
+
+.player-client {
+    justify-content: end;
+}
+
+.pfp {
+    border: 3px solid grey;
+    margin-left: 20px;
+    margin-right: 20px;
 }

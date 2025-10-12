@@ -1,5 +1,13 @@
 import { Stomp, Client, type Message } from "@stomp/stompjs";
 
+type InfoMessage = {
+    gameId: string,
+    message?: string,
+    players?: object[],
+    board?: string,
+    ready?: boolean
+};
+
 class WebSocketClient {
     private stmpClient_: Client;
     private gameId_?: String;
@@ -34,7 +42,7 @@ class WebSocketClient {
 
         this.stmpClient_.subscribe(`/user/${this.username_}/${this.gameId_}`,
             (message: Message) => this.handleUserMessaging(message)
-        )
+        );
 
         this.stmpClient_.publish({
             destination: `/game-messaging/join/${this.gameId_}`,
@@ -57,12 +65,13 @@ class WebSocketClient {
         console.log("socket closed");
     }
 
-    handleGameInfo(message: Message) {
-        console.log(message.body);
+    handleGameInfo(msg: Message) {
+        let msgBody: InfoMessage = JSON.parse(msg.body);
+        console.log(msgBody);
     }
 
-    handleUserMessaging(message: Message) {
-        console.log(message.body);
+    handleUserMessaging(msg: Message) {
+        console.log(msg.body);
     }
 }
 

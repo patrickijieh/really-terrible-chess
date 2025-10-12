@@ -178,18 +178,19 @@ const ChessBoard = (props: ChessBoardProps) => {
         let southEastBlocked = false;
 
         for (let i = 1; i < BOARD_SIZE; i++) {
-            if (!northWestBlocked && row + i < BOARD_SIZE && col + i < BOARD_SIZE) {
-                const nWestSquareId = (row + i) * BOARD_SIZE + col + i;
+            if (!northWestBlocked && row - i < BOARD_SIZE && col - i < BOARD_SIZE) {
+                const nWestSquareId = (row - i) * BOARD_SIZE + (col - i);
                 const nWestSquare = document.getElementById(`${nWestSquareId}`)?.children[0];
                 if (nWestSquare !== null && nWestSquare?.childElementCount === 0) {
                     validSquares.push(nWestSquareId);
+                    console.log(nWestSquareId);
                 } else {
                     northWestBlocked = true;
                 }
             }
 
-            if (!southWestBlocked && row - i >= 0 && col + i < BOARD_SIZE) {
-                const sWestSquareId = (row - i) * BOARD_SIZE + col + i;
+            if (!southWestBlocked && row + i >= 0 && col - i < BOARD_SIZE) {
+                const sWestSquareId = (row + i) * BOARD_SIZE + (col - i);
                 const sWestSquare = document.getElementById(`${sWestSquareId}`)?.children[0];
                 if (sWestSquare !== null && sWestSquare?.childElementCount === 0) {
                     validSquares.push(sWestSquareId);
@@ -198,18 +199,20 @@ const ChessBoard = (props: ChessBoardProps) => {
                 }
             }
 
-            if (!northEastBlocked && row + i < BOARD_SIZE && col - i >= 0) {
-                const nEastSquareId = (row + i) * BOARD_SIZE - (col - i);
+            if (!northEastBlocked && row - i < BOARD_SIZE && col + i >= 0) {
+                const nEastSquareId = (row - i) * BOARD_SIZE + (col + i);
+                console.log(nEastSquareId);
                 const nEastSquare = document.getElementById(`${nEastSquareId}`)?.children[0];
                 if (nEastSquare !== null && nEastSquare?.childElementCount === 0) {
                     validSquares.push(nEastSquareId);
+                    console.log(nEastSquareId + " east");
                 } else {
                     northEastBlocked = true;
                 }
             }
 
-            if (!southEastBlocked && row - i >= 0 && col - i >= 0) {
-                const sEastSquareId = (row - i) * BOARD_SIZE - (col - i);
+            if (!southEastBlocked && row + i >= 0 && col + i >= 0) {
+                const sEastSquareId = (row + i) * BOARD_SIZE + (col + i);
                 const sEastSquare = document.getElementById(`${sEastSquareId}`)?.children[0];
                 if (sEastSquare !== null && sEastSquare?.childElementCount === 0) {
                     validSquares.push(sEastSquareId);
@@ -481,6 +484,7 @@ const ChessBoard = (props: ChessBoardProps) => {
     let squareId = 0;
     return (
         <div
+            className="chessboard"
             onMouseMove={(event) =>
                 handleMouseMove(event)}>
             <table>

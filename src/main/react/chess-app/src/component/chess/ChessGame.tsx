@@ -1,9 +1,10 @@
 import { WebSocketClient } from "../../WebSocketClient";
 import { useEffect, useState } from "react";
 import ChessBoard from "./Chessboard";
+import PlayerInformation from "../PlayerInformation";
 import "../../styles.css";
 
-const Game = () => {
+const ChessGame = () => {
     document.title = "Really Terrible Chess";
 
     const [_wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
@@ -26,9 +27,15 @@ const Game = () => {
     return (
         <div className="content">
             <SessionID />
+            <PlayerInformation playerName={"player1"}
+                isYou={false}
+            />
             <div id="chesstable" className="chesstable">
                 <ChessBoard board={boardStr} />
             </div>
+            <PlayerInformation playerName={"player2"}
+                isYou={true}
+            />
         </div>
     );
 };
@@ -49,4 +56,4 @@ const SessionID = () => {
     );
 }
 
-export default Game;
+export default ChessGame;
