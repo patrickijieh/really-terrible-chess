@@ -10,7 +10,8 @@ public class ChessGame {
     public enum GameState {
         NOT_READY,
         READY,
-        RUNNING,
+        NORMAL,
+        CHECK,
         FINISHED
     };
 

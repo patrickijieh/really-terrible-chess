@@ -7,8 +7,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import com.pijieh.rtc.business.ChessEngine;
 import com.pijieh.rtc.business.ChessRoomManager;
-import com.pijieh.rtc.business.GameEngine;
 import com.pijieh.rtc.database.ChessDatabase;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +37,8 @@ public class RTCApp {
     }
 
     @Bean
-    GameEngine gameEngine() {
-        return new GameEngine(defaultBoardStr, boardSize);
+    ChessEngine chessEngine() {
+        return new ChessEngine(defaultBoardStr, boardSize);
     }
 
     public static void main(String[] args) {

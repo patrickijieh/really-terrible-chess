@@ -65,14 +65,14 @@ public class GameController {
         simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId, body);
 
         if (chessRoomManager.isGameReady(gameId)) {
-            sendGameReadyMessage(gameId, players[0].getName(), players[1].getName());
-            chessRoomManager.startGame(gameId);
+            final String board = chessRoomManager.startGame(gameId);
+            sendGameReadyMessage(gameId, board, players[0].getName(), players[1].getName());
         }
     }
 
-    private void sendGameReadyMessage(String gameId, String playerA, String playerB) {
+    private void sendGameReadyMessage(String gameId, String board, String playerA, String playerB) {
         final String destination = "/" + gameId;
-        final String payload = gson.toJson(new ReadyMessage(gameId));
+        final String payload = gson.toJson(new ReadyMessage(gameId, board));
 
         simpMessagingTemplate.convertAndSendToUser(playerA, destination, payload);
         simpMessagingTemplate.convertAndSendToUser(playerB, destination, payload);

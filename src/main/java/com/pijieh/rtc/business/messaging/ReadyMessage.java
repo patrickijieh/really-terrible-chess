@@ -8,5 +8,8 @@ public class ReadyMessage {
     @NonNull
     String gameId;
 
+    @NonNull
+    String board;
+
     boolean ready = true;
 }

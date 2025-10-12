@@ -22,7 +22,7 @@ public final class ChessRoomManager {
     ChessDatabase database;
 
     @Autowired
-    GameEngine gameEngine;
+    ChessEngine chessEngine;
 
     int maxGames;
     int maxPlayers;
@@ -48,7 +48,7 @@ public final class ChessRoomManager {
 
         Player playerOne = new Player(ownerName);
         ChessGame newGame = new ChessGame(playerOne, gameId,
-                gameEngine.getDefaultBoard());
+                chessEngine.getDefaultBoard());
         chessGames.put(gameId, newGame);
         log.info("Created new game with id: {}", newGame.getId());
         return Optional.of(newGame.getId());
@@ -138,19 +138,21 @@ public final class ChessRoomManager {
         return (game != null) ? game.isReady() : false;
     }
 
-    public void startGame(String gameId) {
+    public String startGame(String gameId) {
         ChessGame game = chessGames.get(gameId);
 
         if (game != null) {
-            game.setGameState(GameState.RUNNING);
+            game.setGameState(GameState.NORMAL);
             log.info("Game session {} has started", game.getId());
         }
+
+        return chessEngine.stringifyBoard(game.getChessboard());
     }
 
     public String getChessboardFromId(String gameId) {
         ChessGame game = chessGames.get(gameId);
 
-        return (game != null) ? gameEngine.stringifyBoard(game.getChessboard()) : "";
+        return (game != null) ? chessEngine.stringifyBoard(game.getChessboard()) : "";
     }
 
     private void destroyGame(String gameId) {
