@@ -7,33 +7,60 @@ import "../../styles.css";
 const ChessGame = () => {
     document.title = "Really Terrible Chess";
 
-    const [_wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
-    const [boardStr, _setBoardStr] = useState("");
-    useEffect(() => { startWebSocketClient() }, []);
+    const [wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
+    const [boardStr, setBoardStr] = useState("");
+    const [gameData, setGameData] = useState({
+        player: "You",
+        opponent: "Opponent"
+    });
+
+    useEffect(() => {
+        let username = localStorage.getItem("username");
+        if (username !== null) {
+            setGameData({
+                ...gameData,
+                player: username
+            })
+        }
+        startWebSocketClient();
+    }, []);
+
+    const updateGameState = (board: string, opp: string, username: string) => {
+        setGameData({
+            player: username,
+            opponent: opp
+        })
+
+        setBoardStr(board);
+    }
 
     const startWebSocketClient = () => {
-        const name = localStorage.getItem("name");
+        const username = localStorage.getItem("username");
         const gameId = localStorage.getItem("gameId");
 
-        if (!name || !gameId) {
+        if (!username || !gameId) {
             return;
         }
 
-        const newClient = new WebSocketClient(gameId, name, "/ws", false);
+        const newClient = new WebSocketClient(gameId, username, "/ws", updateGameState, false);
         newClient.activate();
         setWsClient(newClient);
+    }
+
+    const sendMove = (move: string) => {
+        wsClient.sendMove(move);
     }
 
     return (
         <div className="content">
             <SessionID />
-            <PlayerInformation playerName={"player1"}
+            <PlayerInformation playerName={gameData.opponent}
                 isYou={false}
             />
             <div id="chesstable" className="chesstable">
-                <ChessBoard board={boardStr} />
+                <ChessBoard board={boardStr} sendMove={sendMove} />
             </div>
-            <PlayerInformation playerName={"player2"}
+            <PlayerInformation playerName={gameData.player}
                 isYou={true}
             />
         </div>

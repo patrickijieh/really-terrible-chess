@@ -6,5 +6,5 @@ import lombok.Value;
 @Value
 public class CreateRoomForm {
     @NonNull
-    String name;
+    String username;
 }

@@ -45,16 +45,16 @@ public class GameController {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        if (!chessRoomManager.playerIsInRoom(gameId, player.getName())) {
+        if (!chessRoomManager.playerIsInRoom(gameId, player.getUsername())) {
             simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId,
                     gson.toJson(new ErrorMessage(gameId, HttpStatus.NOT_FOUND, "game not found")));
 
             return;
         }
 
-        log.info("player {} has joined session {}", player.getName(), gameId);
+        log.info("player {} has joined session {}", player.getUsername(), gameId);
 
-        chessRoomManager.setPlayerSession(headerAccessor.getSessionId(), player.getName(),
+        chessRoomManager.setPlayerSession(headerAccessor.getSessionId(), player.getUsername(),
                 gameId);
 
         final Player[] players = chessRoomManager.getPlayersFromGame(gameId);
@@ -66,7 +66,7 @@ public class GameController {
 
         if (chessRoomManager.isGameReady(gameId)) {
             final String board = chessRoomManager.startGame(gameId);
-            sendGameReadyMessage(gameId, board, players[0].getName(), players[1].getName());
+            sendGameReadyMessage(gameId, board, players[0].getUsername(), players[1].getUsername());
         }
     }
 

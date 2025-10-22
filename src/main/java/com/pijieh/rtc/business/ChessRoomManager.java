@@ -61,7 +61,7 @@ public final class ChessRoomManager {
 
         ChessGame game = chessGames.get(gameId);
         if (game.getPlayerTwo() != null
-                && !game.getPlayerTwo().getName().equals(playerName)) {
+                && !game.getPlayerTwo().getUsername().equals(playerName)) {
 
             return Optional.empty();
         }
@@ -78,11 +78,11 @@ public final class ChessRoomManager {
         }
 
         if (game.getPlayerTwo() == null) {
-            return game.getPlayerOne().getName().equals(playerName);
+            return game.getPlayerOne().getUsername().equals(playerName);
         }
 
-        return game.getPlayerOne().getName().equals(playerName) ||
-                game.getPlayerTwo().getName().equals(playerName);
+        return game.getPlayerOne().getUsername().equals(playerName) ||
+                game.getPlayerTwo().getUsername().equals(playerName);
     }
 
     public void setPlayerSession(String socketSessionId, String playerName, String gameId) throws RuntimeException {
@@ -93,7 +93,7 @@ public final class ChessRoomManager {
             throw new RuntimeException("game id is somehow not valid; resort to crashing & burning");
         }
 
-        if (game.getPlayerOne().getName().equals(playerName)) {
+        if (game.getPlayerOne().getUsername().equals(playerName)) {
             game.getPlayerOne().setSocketSessionId(socketSessionId);
             game.getPlayerOne().setGameId(game.getId());
             players.put(socketSessionId, game.getPlayerOne());

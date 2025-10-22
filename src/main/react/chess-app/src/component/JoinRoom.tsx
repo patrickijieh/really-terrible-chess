@@ -5,13 +5,13 @@ const JoinRoom = () => {
     document.title = "Really Terrible Chess - Join Room";
 
     const [state, setState] = useState({
-        name: "",
+        username: "",
         gameId: ""
     });
 
     const sendRoomJoinRequest = async (): Promise<void> => {
 
-        if (state.name.length < 1 || state.gameId.length < 1) {
+        if (state.username.length < 1 || state.gameId.length < 1) {
             return;
         }
 
@@ -21,14 +21,14 @@ const JoinRoom = () => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "name": state.name,
+                "username": state.username,
                 "gameId": state.gameId
             })
         });
 
         const data: { gameId: string } = await response.json();
         localStorage.setItem("gameId", data.gameId);
-        localStorage.setItem("name", state.name);
+        localStorage.setItem("username", state.username);
 
         window.location.href = "./game";
     }
@@ -50,8 +50,8 @@ const JoinRoom = () => {
                         <h4 className="form-label">
                             Your username
                         </h4>
-                        <input type="text" name="name" id="name" className="form-input"
-                            value={state.name}
+                        <input type="text" name="username" id="username" className="form-input"
+                            value={state.username}
                             onKeyUp={(event) => {
                                 if (event.key === "Enter") { sendRoomJoinRequest() }
                             }}

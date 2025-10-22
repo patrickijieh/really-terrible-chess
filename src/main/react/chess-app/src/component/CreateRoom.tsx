@@ -4,10 +4,10 @@ import { useState, type ChangeEvent } from "react";
 const CreateRoom = () => {
     document.title = "Really Terrible Chess - Create Room";
 
-    const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
 
     const sendRoomCreationRequest = async (): Promise<void> => {
-        if (name.length < 1) {
+        if (username.length < 1) {
             return;
         }
 
@@ -17,19 +17,19 @@ const CreateRoom = () => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "name": name
+                "username": username
             })
         });
 
         const data: { gameId: string } = await response.json();
         localStorage.setItem("gameId", data.gameId);
-        localStorage.setItem("name", name);
+        localStorage.setItem("username", username);
 
         window.location.href = "./game";
     }
 
     const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setName(event.target.value);
+        setUsername(event.target.value);
     }
 
     return (
@@ -42,8 +42,8 @@ const CreateRoom = () => {
                         <h4 className="form-label">
                             Your username
                         </h4>
-                        <input type="text" name="name" id="name" className="form-input"
-                            value={name}
+                        <input type="text" name="username" id="username" className="form-input"
+                            value={username}
                             onKeyUp={(event) => {
                                 if (event.key === "Enter") { sendRoomCreationRequest() }
                             }}

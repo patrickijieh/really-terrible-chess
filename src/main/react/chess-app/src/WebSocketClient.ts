@@ -3,22 +3,37 @@ import { Stomp, Client, type Message } from "@stomp/stompjs";
 type InfoMessage = {
     gameId: string,
     message?: string,
-    players?: object[],
+    players?: Player[],
     board?: string,
     ready?: boolean
 };
 
+type UserMessage = {
+    gameId: string,
+    message?: string,
+    board?: string,
+    ready?: boolean
+};
+
+type Player = {
+    username: string
+};
+
 class WebSocketClient {
     private stmpClient_: Client;
-    private gameId_?: String;
-    private username_?: String;
-    constructor(gameId?: string, username?: string, url?: string, debug: boolean = true) {
+    private gameId_?: string;
+    private username_?: string;
+    private opponentUsername_: string | null;
+    private updateGameState?: Function;
+    constructor(gameId?: string, username?: string, url?: string, updateGameState?: Function, debug: boolean = true) {
         if (url === undefined) {
             this.stmpClient_ = new Client();
         }
 
         if (gameId !== undefined) { this.gameId_ = gameId };
         if (username !== undefined) { this.username_ = username };
+        if (updateGameState !== undefined) { this.updateGameState = updateGameState };
+        this.opponentUsername_ = null;
 
         this.stmpClient_ = Stomp.client(url!);
 
@@ -33,7 +48,7 @@ class WebSocketClient {
 
     activate() { this.stmpClient_.activate(); }
 
-    onConnection() {
+    private onConnection() {
         console.log("client connected");
 
         this.stmpClient_.subscribe(`/game-messaging/info/${this.gameId_}`,
@@ -47,31 +62,58 @@ class WebSocketClient {
         this.stmpClient_.publish({
             destination: `/game-messaging/join/${this.gameId_}`,
             body: JSON.stringify({
-                name: this.username_
+                username: this.username_
             })
         });
     }
 
-    onDisconnect() {
+    private onDisconnect() {
         console.log("socket disconnected");
         this.stmpClient_.deactivate();
     }
 
-    onWsError(_event: Error) {
+    private onWsError(_event: Error) {
         console.error("websocket error");
     }
 
-    onWsClose() {
+    private onWsClose() {
         console.log("socket closed");
     }
 
-    handleGameInfo(msg: Message) {
+    private handleGameInfo(msg: Message) {
         let msgBody: InfoMessage = JSON.parse(msg.body);
-        console.log(msgBody);
+        if (msgBody.players) {
+            this.changeOpponent(msgBody.players);
+        }
     }
 
-    handleUserMessaging(msg: Message) {
-        console.log(msg.body);
+    private changeOpponent(players: Player[]) {
+        players?.forEach(player => {
+            if (player.username !== this.username_) {
+                this.opponentUsername_ = player.username;
+            }
+        });
+    }
+
+    getOpponent(): string | null {
+        return this.opponentUsername_;
+    }
+
+    sendMove(pieceMove: string) {
+        this.stmpClient_.publish({
+            destination: `/game-messaging/move/${this.gameId_}`,
+            body: JSON.stringify({
+                username: this.username_,
+                move: pieceMove
+            })
+        })
+    }
+
+    private handleUserMessaging(msg: Message) {
+        let msgBody: UserMessage = JSON.parse(msg.body);
+        if (msgBody.board && this.updateGameState) {
+            this.updateGameState(msgBody.board, this.getOpponent(), this.username_);
+        }
     }
 }
 

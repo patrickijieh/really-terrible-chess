@@ -23,9 +23,11 @@ class ChessPieceInfo {
 
 class ChessBoardProps {
     board: string
+    sendMove: Function
 
-    constructor(board: string) {
+    constructor(board: string, sendMove: Function) {
         this.board = board;
+        this.sendMove = sendMove;
     }
 }
 

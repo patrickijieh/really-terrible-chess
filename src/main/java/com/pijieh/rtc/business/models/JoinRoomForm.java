@@ -9,5 +9,5 @@ public class JoinRoomForm {
     String gameId;
 
     @NonNull
-    String name;
+    String username;
 }

@@ -45,7 +45,7 @@ public class RoomController {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Optional<String> gameId = chessRoomManager.createRoom(createForm.getName());
+        Optional<String> gameId = chessRoomManager.createRoom(createForm.getUsername());
 
         if (gameId.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -61,7 +61,7 @@ public class RoomController {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Optional<String> gameId = chessRoomManager.joinRoom(joinForm.getGameId(),
-                joinForm.getName());
+                joinForm.getUsername());
 
         if (gameId.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

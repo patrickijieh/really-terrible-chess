@@ -32,8 +32,10 @@ public class ChessMoveController {
 
     private static final Gson gson = new Gson();
 
-    @MessageMapping("/move")
-    public void playerMove() {
+    @MessageMapping("/move/{id}")
+    public void playerMove(@DestinationVariable(value = "id") String gameId) {
 
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
     }
 }

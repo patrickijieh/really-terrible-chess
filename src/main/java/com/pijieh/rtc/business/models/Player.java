@@ -11,7 +11,7 @@ import lombok.Setter;
 public class Player {
 
     @NonNull
-    String name;
+    String username;
 
     transient String socketSessionId;
     transient String gameId;
