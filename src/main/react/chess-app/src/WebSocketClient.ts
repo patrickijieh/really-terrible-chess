@@ -13,6 +13,7 @@ type UserMessage = {
     message?: string,
     board?: string,
     ready?: boolean
+    status?: string
 };
 
 type Player = {
@@ -59,6 +60,10 @@ class WebSocketClient {
             (message: Message) => this.handleUserMessaging(message)
         );
 
+        this.stmpClient_.subscribe(`/game-messaging/moves/${this.gameId_}`,
+            (message: Message) => this.handleGameMoves(message)
+        );
+
         this.stmpClient_.publish({
             destination: `/game-messaging/join/${this.gameId_}`,
             body: JSON.stringify({
@@ -87,6 +92,11 @@ class WebSocketClient {
         }
     }
 
+    private handleGameMoves(msg: Message) {
+        let msgBody: UserMessage = JSON.parse(msg.body);
+        console.log(msgBody);
+    }
+
     private changeOpponent(players: Player[]) {
         players?.forEach(player => {
             if (player.username !== this.username_) {
@@ -100,8 +110,9 @@ class WebSocketClient {
     }
 
     sendMove(pieceMove: string) {
+        console.log(pieceMove);
         this.stmpClient_.publish({
-            destination: `/game-messaging/move/${this.gameId_}`,
+            destination: `/game-messaging/send-move/${this.gameId_}`,
             body: JSON.stringify({
                 username: this.username_,
                 move: pieceMove
@@ -112,6 +123,7 @@ class WebSocketClient {
     private handleUserMessaging(msg: Message) {
         let msgBody: UserMessage = JSON.parse(msg.body);
         if (msgBody.board && this.updateGameState) {
+            if (msgBody.message) { console.log(msgBody.message); }
             this.updateGameState(msgBody.board, this.getOpponent(), this.username_);
         }
     }

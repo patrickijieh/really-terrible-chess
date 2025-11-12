@@ -37,13 +37,12 @@ const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
             imgSrc = isWhite ? whitePawn : blackPawn;
             break;
     }
-
-
     return (
         <>
             <img src={imgSrc}
                 alt={`${isWhite ? "WHITE" : "BLACK"} ${type}`}
                 draggable={true}
+                {... { "piece-type": type, "piece-color": (isWhite ? "WHITE" : "BLACK") }}
             />
         </>
     )

@@ -1,9 +1,7 @@
 package com.pijieh.rtc.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -18,6 +16,7 @@ import com.pijieh.rtc.business.messaging.ErrorMessage;
 import com.pijieh.rtc.business.messaging.JoinMessage;
 import com.pijieh.rtc.business.messaging.ReadyMessage;
 import com.pijieh.rtc.business.models.Player;
+import com.pijieh.rtc.business.models.ChessGame.GameState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,11 +38,8 @@ public class GameController {
     }
 
     @MessageMapping("/join/{id}")
-    public void playerJoins(@DestinationVariable(value = "id") String gameId,
+    public void playerConnect(@DestinationVariable(value = "id") String gameId,
             @Payload Player player, StompHeaderAccessor headerAccessor) {
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
 
         if (!chessRoomManager.playerIsInRoom(gameId, player.getUsername())) {
             simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId,
@@ -64,7 +60,7 @@ public class GameController {
 
         simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId, body);
 
-        if (chessRoomManager.isGameReady(gameId)) {
+        if (chessRoomManager.getGameStateFromId(gameId) == GameState.READY) {
             final String board = chessRoomManager.startGame(gameId);
             sendGameReadyMessage(gameId, board, players[0].getUsername(), players[1].getUsername());
         }

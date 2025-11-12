@@ -60,7 +60,7 @@ const ChessGame = () => {
             <div id="chesstable" className="chesstable">
                 <ChessBoard board={boardStr} sendMove={sendMove} />
             </div>
-            <PlayerInformation playerName={gameData.player}
+            <PlayerInformation playerName={`${gameData.player} (You)`}
                 isYou={true}
             />
         </div>

@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.pijieh.rtc.business.models.ChessGame;
+import com.pijieh.rtc.business.models.ChessMove;
 import com.pijieh.rtc.business.models.Player;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.database.ChessDatabase;
@@ -132,10 +133,10 @@ public final class ChessRoomManager {
         return new Player[] { game.getPlayerOne(), game.getPlayerTwo() };
     }
 
-    public boolean isGameReady(String gameId) {
+    public GameState getGameStateFromId(String gameId) {
         ChessGame game = chessGames.get(gameId);
 
-        return (game != null) ? game.isReady() : false;
+        return game.getGameState();
     }
 
     public String startGame(String gameId) {
@@ -152,7 +153,17 @@ public final class ChessRoomManager {
     public String getChessboardFromId(String gameId) {
         ChessGame game = chessGames.get(gameId);
 
-        return (game != null) ? chessEngine.stringifyBoard(game.getChessboard()) : "";
+        return (game != null) ? chessEngine.stringifyBoard(game.getChessboard()) : new String();
+    }
+
+    public Optional<String> makeMove(String gameId, ChessMove move) {
+        ChessGame game = chessGames.get(gameId);
+
+        if (!chessEngine.makeMove(game.getChessboard(), move.getMove())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(chessEngine.stringifyBoard(game.getChessboard()));
     }
 
     private void destroyGame(String gameId) {

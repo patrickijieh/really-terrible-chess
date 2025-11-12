@@ -1,4 +1,4 @@
-import { useRef, useState, type JSX, type MouseEvent } from "react";
+import { useRef, useState, type DragEvent, type JSX, type MouseEvent } from "react";
 import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps } from "./types";
 import ChessSquare from "./ChessSquare";
 import "../../styles.css";
@@ -11,8 +11,9 @@ const PIECE_IMG_PIXEL_SIZE: number = 128;
 const ChessBoard = (props: ChessBoardProps) => {
 
     const [validMoves, setValidMoves] = useState<number[]>([]);
-    const [draggedClone, setDraggedClone] = useState<HTMLImageElement>();
+    const [draggedClone, setDraggedClone] = useState<HTMLImageElement | null>();
     const [dragging, setDragging] = useState(false);
+    const [dropped, setDropped] = useState(false);
     const dragRef = useRef<EventTarget>(null);
 
     const createChessBoard = (boardStr: string) => {
@@ -23,27 +24,33 @@ const ChessBoard = (props: ChessBoardProps) => {
         let pieces = parseBoard(boardStr);
 
         const newBoard: JSX.Element[][] = [];
-        for (let row = BOARD_SIZE; row > 0; row--) {
+        for (let row = 1; row <= BOARD_SIZE; row++) {
             let column = [];
             for (let col = 0; col < BOARD_SIZE; col++) {
                 column.push(<ChessSquare isWhiteSquare={(row + col) % 2 == 0}
+                    row={BOARD_SIZE - row}
+                    col={col}
                     handlePieceMoveEnd={handlePieceMoveEnd}
+                    handleDrop={handleDrop}
                 />);
             }
             newBoard.push(column);
         }
 
         pieces.map(piece => {
-            let pos = convertPiecePosition(piece.pos);
+            let pos = convertStringToPosition(piece.pos);
             let rowNumber = pos.row;
             let columnNumber = pos.col;
 
-            newBoard[rowNumber][columnNumber] =
+            newBoard[BOARD_SIZE - rowNumber - 1][columnNumber] =
                 <ChessSquare
+                    row={rowNumber}
+                    col={columnNumber}
                     isWhiteSquare={(rowNumber + columnNumber) % 2 == 0}
                     chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, piece.pos)}
                     handlePieceMoveStart={handlePieceMoveStart}
                     handlePieceMoveEnd={handlePieceMoveEnd}
+                    handleDrop={handleDrop}
                 />;
         });
 
@@ -58,7 +65,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         handlePieceMove(event);
     }
 
-    const convertPiecePosition = (pos: string) => {
+    const convertStringToPosition = (pos: string) => {
         let row = pos.charAt(1);
         let rowNumber = BOARD_SIZE - Number.parseInt(row);
         let columnNumber = pos.charCodeAt(0) - "a".charCodeAt(0);
@@ -67,6 +74,20 @@ const ChessBoard = (props: ChessBoardProps) => {
             row: rowNumber,
             col: columnNumber
         }
+    }
+
+    const convertPositionToString = (row: number, col: number) => {
+        let columnLabel = String.fromCharCode(col + "a".charCodeAt(0));
+        return columnLabel + "" + (row + 1);
+    }
+
+    const convertIdToAlgebraicNotation = (pos: string) => {
+        let num = Number.parseInt(pos);
+        let col = num % BOARD_SIZE;
+        let row = BOARD_SIZE - Math.floor(num / 8);
+
+        let colLetter = String.fromCharCode("a".charCodeAt(0) + col);
+        return colLetter + row;
     }
 
     const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string, isWhite: boolean) => {
@@ -92,7 +113,9 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const handlePieceMove = (event: MouseEvent) => {
-        moveClone(event, draggedClone);
+        if (draggedClone != null) {
+            moveClone(event, draggedClone);
+        }
     }
 
     const moveClone = (event: MouseEvent, clone?: HTMLImageElement) => {
@@ -104,11 +127,12 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handlePieceMoveEnd = (_event: MouseEvent<Element>) => {
+    const handlePieceMoveEnd = (_event: MouseEvent<Element>, _row: number, _col: number) => {
         setDragging(false);
+        setDropped(true);
         if (draggedClone) {
             draggedClone.remove();
-            setDraggedClone(undefined);
+            setDraggedClone(null);
         }
 
         if (dragRef.current instanceof Node && dragRef.current.firstChild instanceof HTMLImageElement) {
@@ -116,11 +140,65 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
+    const handleDrop = (_event: DragEvent<Element>, row: number, col: number) => {
+        if (!dropped) {
+            return;
+        }
+
+        if (!(dragRef.current instanceof Node) || !(dragRef.current.firstChild instanceof HTMLImageElement)) {
+            setDropped(false);
+            return;
+        }
+
+        let draggedPieceType = dragRef.current.firstChild.getAttribute("piece-type");
+        let draggedPieceColor = dragRef.current.firstChild.getAttribute("piece-color");
+
+        let pieceColor = "";
+        switch (draggedPieceColor) {
+            case "BLACK":
+                pieceColor = "b";
+                break;
+            case "WHITE":
+                pieceColor = "w";
+                break;
+        }
+
+        let pieceNotation: string;
+        switch (draggedPieceType) {
+            case PieceType.BISHOP:
+                pieceNotation = "B";
+                break;
+            case PieceType.KING:
+                pieceNotation = "K";
+                break;
+            case PieceType.KNIGHT:
+                pieceNotation = "N";
+                break;
+            case PieceType.QUEEN:
+                pieceNotation = "Q";
+                break;
+            case PieceType.ROOK:
+                pieceNotation = "R";
+                break;
+            default:
+                pieceNotation = "";
+        }
+
+        let pos = dragRef.current.parentElement?.id;
+        let oldPosition: string = "";
+        if (pos !== undefined) {
+            oldPosition = convertIdToAlgebraicNotation(pos);
+        }
+        setDropped(false);
+        let newPosition = convertPositionToString(row, col);
+        props.sendMove(pieceColor + pieceNotation + oldPosition + ">" + newPosition);
+    }
+
     const showAvailableMoves = (pieceType: PieceType, pos: string, isWhite: boolean) => {
         if (validMoves !== undefined && validMoves.length > 0) {
             clearValidMoves();
         }
-        let piecePosition = convertPiecePosition(pos);
+        let piecePosition = convertStringToPosition(pos);
         let row: number = piecePosition.row;
         let col: number = piecePosition.col;
         let validSquares: number[] = [];
@@ -164,7 +242,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             if (idx === -1) {
                 continue;
             }
-            elem?.setAttribute("class", squareClass?.substring(0, idx));
+            elem?.setAttribute("class", squareClass?.substring(0, idx - 1));
         }
         setValidMoves([]);
     }
@@ -183,7 +261,6 @@ const ChessBoard = (props: ChessBoardProps) => {
                 const nWestSquare = document.getElementById(`${nWestSquareId}`)?.children[0];
                 if (nWestSquare !== null && nWestSquare?.childElementCount === 0) {
                     validSquares.push(nWestSquareId);
-                    console.log(nWestSquareId);
                 } else {
                     northWestBlocked = true;
                 }
@@ -201,11 +278,9 @@ const ChessBoard = (props: ChessBoardProps) => {
 
             if (!northEastBlocked && row - i < BOARD_SIZE && col + i >= 0) {
                 const nEastSquareId = (row - i) * BOARD_SIZE + (col + i);
-                console.log(nEastSquareId);
                 const nEastSquare = document.getElementById(`${nEastSquareId}`)?.children[0];
                 if (nEastSquare !== null && nEastSquare?.childElementCount === 0) {
                     validSquares.push(nEastSquareId);
-                    console.log(nEastSquareId + " east");
                 } else {
                     northEastBlocked = true;
                 }
@@ -293,37 +368,37 @@ const ChessBoard = (props: ChessBoardProps) => {
 
         if (row - 2 >= 0) {
             if (col - 1 >= 0) {
-                squares.push(document.getElementById(`${(row - 2) * BOARD_SIZE + (col - 1)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - (row - 1)) * BOARD_SIZE + (col - 1)}`));
             }
             if (col + 1 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(row - 2) * BOARD_SIZE + (col + 1)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - (row - 1)) * BOARD_SIZE + (col + 1)}`));
             }
         }
 
         if (row - 1 >= 0) {
             if (col - 2 >= 0) {
-                squares.push(document.getElementById(`${(row - 1) * BOARD_SIZE + (col - 2)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - row) * BOARD_SIZE + (col - 2)}`));
             }
             if (col + 2 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(row - 1) * BOARD_SIZE + (col + 2)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - row) * BOARD_SIZE + (col + 2)}`));
             }
         }
 
         if (row + 2 < BOARD_SIZE) {
             if (col - 1 >= 0) {
-                squares.push(document.getElementById(`${(row + 2) * BOARD_SIZE + (col - 1)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - (row + 3)) * BOARD_SIZE + (col - 1)}`));
             }
             if (col + 1 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(row + 2) * BOARD_SIZE + (col + 1)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - (row + 3)) * BOARD_SIZE + (col + 1)}`));
             }
         }
 
         if (row + 1 < BOARD_SIZE) {
             if (col - 2 >= 0) {
-                squares.push(document.getElementById(`${(row + 1) * BOARD_SIZE + (col - 2)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - row + 1) * BOARD_SIZE + (col - 2)}`));
             }
             if (col + 2 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(row + 1) * BOARD_SIZE + (col - 2)}`));
+                squares.push(document.getElementById(`${(BOARD_SIZE - row + 1) * BOARD_SIZE + (col - 2)}`));
             }
         }
 
@@ -347,15 +422,17 @@ const ChessBoard = (props: ChessBoardProps) => {
 
         // if the pawn reaches the last row, its no longer a pawn. No need to check if the move goes past the last rank
         const validSquares: number[] = [];
+
+        console.log(row);
         if (isWhitePawn) {
-            const firstSquareId = (row - 1) * BOARD_SIZE + (col);
+            const firstSquareId = (BOARD_SIZE - (row + 2)) * BOARD_SIZE + (col);
             const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
             if (squareOne?.childElementCount !== 0) {
                 return validSquares;
             }
             validSquares.push(firstSquareId);
-            if (row === 6) {
-                let secondSquareId = (row - 2) * BOARD_SIZE + (col);
+            if (row === 1) {
+                let secondSquareId = (BOARD_SIZE - (row + 3)) * BOARD_SIZE + (col);
                 const squareTwo = document.getElementById(`${secondSquareId}`)?.children[0];
                 if (squareTwo?.childElementCount === 0) {
                     validSquares.push(secondSquareId);
@@ -363,14 +440,14 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
         }
         else {
-            const firstSquareId = (row + 1) * BOARD_SIZE + (col);
+            const firstSquareId = (BOARD_SIZE - row) * BOARD_SIZE + (col);
             const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
             if (squareOne?.childElementCount !== 0) {
                 return validSquares;
             }
             validSquares.push(firstSquareId);
-            if (row === 1) {
-                let secondSquareId = (row + 2) * BOARD_SIZE + (col);
+            if (row === 6) {
+                let secondSquareId = (BOARD_SIZE - row + 1) * BOARD_SIZE + (col);
                 const squareTwo = document.getElementById(`${secondSquareId}`)?.children[0];
                 if (squareTwo?.childElementCount === 0) {
                     validSquares.push(secondSquareId);
@@ -465,11 +542,13 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             let piece: ChessPieceInfo;
-            if (type != PieceType.PAWN) {
-                piece = new ChessPieceInfo(type, isWhite, boardStr.substring(i + 1, i + 3));
+            if (type !== PieceType.PAWN) {
+                let pos = convertStringToPosition(boardStr.substring(i + 1, i + 3));
+                piece = new ChessPieceInfo(type, isWhite, convertPositionToString(pos.row, pos.col));
                 i += 2;
             } else {
-                piece = new ChessPieceInfo(type, isWhite, boardStr.substring(i, i + 2));
+                let pos = convertStringToPosition(boardStr.substring(i, i + 2));
+                piece = new ChessPieceInfo(type, isWhite, convertPositionToString(pos.row, pos.col));
                 i++;
             }
 

@@ -1,6 +1,7 @@
 package com.pijieh.rtc.business;
 
 import com.pijieh.rtc.business.models.ChessPiece;
+import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.business.models.ChessPiece.PieceType;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,59 @@ public class ChessEngine {
         defaultBoard = parseBoard(defaultBoardStr);
     }
 
-    public void validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite, int row,
+    public boolean checkIfValidMove(String moveStr, GameState gameState) {
+        if (gameState != GameState.NORMAL && gameState != GameState.CHECK) {
+            return false;
+        }
+
+        if (moveStr.length() < 6 || moveStr.length() > 7) {
+            return false;
+        }
+
+        if (!moveStr.contains(">")) {
+            return false;
+        }
+
+        if (moveStr.charAt(0) != 'w' && moveStr.charAt(0) != 'b') {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean makeMove(ChessPiece[][] board, String moveStr) {
+        PieceType type = parsePieceType(moveStr);
+        boolean pieceIsWhite = moveStr.charAt(0) == 'w';
+
+        BoardPosition oldPos;
+        BoardPosition newPos;
+        if (type == PieceType.PAWN) {
+            oldPos = convertStringToPosition(moveStr.substring(1, 3));
+            newPos = convertStringToPosition(moveStr.substring(4));
+        } else {
+            oldPos = convertStringToPosition(moveStr.substring(2, 4));
+            newPos = convertStringToPosition(moveStr.substring(5));
+        }
+
+        return validateMove(board, type, pieceIsWhite, oldPos.getRow(), oldPos.getCol(),
+                newPos.getRow(), newPos.getCol());
+    }
+
+    public PieceType parsePieceType(String moveStr) {
+        char pieceNotation = moveStr.charAt(1);
+        PieceType type = switch (pieceNotation) {
+            case 'B' -> PieceType.BISHOP;
+            case 'K' -> PieceType.KING;
+            case 'N' -> PieceType.KNIGHT;
+            case 'Q' -> PieceType.QUEEN;
+            case 'R' -> PieceType.ROOK;
+            default -> PieceType.PAWN;
+        };
+
+        return type;
+    }
+
+    public boolean validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite, int row,
             int col, int newRow, int newCol) {
         assert row < 8 && row >= 0;
         assert col < 8 && col >= 0;
@@ -28,12 +81,12 @@ public class ChessEngine {
         ChessPiece potentialPiece = board[newRow][newCol];
 
         if (piece == null || piece.getType() != type) {
-            return;
+            return false;
         }
 
         if (potentialPiece != null) {
             if (!(potentialPiece.isWhite() ^ pieceIsWhite)) {
-                return;
+                return false;
             }
         }
 
@@ -60,11 +113,10 @@ public class ChessEngine {
         }
 
         if (!validMove) {
-            return;
+            return false;
         }
 
-        board[newRow][newCol] = piece;
-        board[row][col] = null;
+        return true;
     }
 
     private boolean validateKnightMove(int row, int col, int newRow, int newCol) {

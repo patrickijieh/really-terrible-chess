@@ -45,12 +45,18 @@ class ChessPieceProps {
 class ChessSquareProps {
     chessPieceProps?: ChessPieceProps;
     handlePieceMoveStart?: Function;
+    handleDrop?: Function;
     handlePieceMoveEnd?: Function;
     isWhiteSquare: boolean;
+    row: number;
+    col: number;
 
-    constructor(isWhiteSquare: boolean, pieceProps?: ChessPieceProps, moveStart?: Function,
-        moveEnd?: Function) {
+    constructor(isWhiteSquare: boolean, row: number, col: number, pieceProps?: ChessPieceProps, moveStart?: Function,
+        moveEnd?: Function, moveDrop?: Function) {
         this.isWhiteSquare = isWhiteSquare;
+        this.row = row;
+        this.col = col;
+
         if (pieceProps) {
             this.chessPieceProps = pieceProps;
         }
@@ -59,6 +65,9 @@ class ChessSquareProps {
         }
         if (moveEnd) {
             this.handlePieceMoveEnd = moveEnd;
+        }
+        if (moveDrop) {
+            this.handleDrop = moveDrop;
         }
     }
 }
