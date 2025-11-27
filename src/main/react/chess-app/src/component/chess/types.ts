@@ -23,10 +23,12 @@ class ChessPieceInfo {
 
 class ChessBoardProps {
     board: string
+    isWhite: boolean;
     sendMove: Function
 
-    constructor(board: string, sendMove: Function) {
+    constructor(board: string, isWhite: boolean, sendMove: Function) {
         this.board = board;
+        this.isWhite = isWhite;
         this.sendMove = sendMove;
     }
 }

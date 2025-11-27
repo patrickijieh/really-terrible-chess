@@ -41,9 +41,10 @@ public class ChessEngine {
     public boolean makeMove(ChessPiece[][] board, String moveStr) {
         PieceType type = parsePieceType(moveStr);
         boolean pieceIsWhite = moveStr.charAt(0) == 'w';
-
+        boolean isCapture = moveStr.contains("x");
         BoardPosition oldPos;
         BoardPosition newPos;
+
         if (type == PieceType.PAWN) {
             oldPos = convertStringToPosition(moveStr.substring(1, 3));
             newPos = convertStringToPosition(moveStr.substring(4));
@@ -52,8 +53,18 @@ public class ChessEngine {
             newPos = convertStringToPosition(moveStr.substring(5));
         }
 
-        return validateMove(board, type, pieceIsWhite, oldPos.getRow(), oldPos.getCol(),
-                newPos.getRow(), newPos.getCol());
+        boolean validMove = validateMove(board, type, pieceIsWhite, isCapture, oldPos.getRow(),
+                oldPos.getCol(), newPos.getRow(), newPos.getCol());
+
+        if (!validMove) {
+            return false;
+        }
+
+        ChessPiece movingPiece = board[oldPos.getRow()][oldPos.getCol()];
+        board[oldPos.getRow()][oldPos.getCol()] = null;
+        board[newPos.getRow()][newPos.getCol()] = movingPiece;
+
+        return true;
     }
 
     public PieceType parsePieceType(String moveStr) {
@@ -70,8 +81,8 @@ public class ChessEngine {
         return type;
     }
 
-    public boolean validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite, int row,
-            int col, int newRow, int newCol) {
+    public boolean validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite,
+            boolean isCapture, int row, int col, int newRow, int newCol) {
         assert row < 8 && row >= 0;
         assert col < 8 && col >= 0;
         assert newRow < 8 && newRow >= 0;
@@ -90,27 +101,14 @@ public class ChessEngine {
             }
         }
 
-        boolean validMove;
-        switch (piece.getType()) {
-            case KNIGHT:
-                validMove = validateKnightMove(row, col, newRow, newCol);
-                break;
-            case BISHOP:
-                validMove = validateBishopMove(row, col, newRow, newCol);
-                break;
-            case ROOK:
-                validMove = validateRookMove(row, col, newRow, newCol);
-                break;
-            case QUEEN:
-                validMove = validateQueenMove(row, col, newRow, newCol);
-                break;
-            case KING:
-                validMove = validateKingMove(row, col, newRow, newCol);
-                break;
-            default:
-                validMove = validatePawnMove(row, col, newRow, newCol, pieceIsWhite, false);
-                break;
-        }
+        boolean validMove = switch (piece.getType()) {
+            case KNIGHT -> validateKnightMove(row, col, newRow, newCol);
+            case BISHOP -> validateBishopMove(board, row, col, newRow, newCol);
+            case ROOK -> validateRookMove(board, row, col, newRow, newCol);
+            case QUEEN -> validateQueenMove(board, row, col, newRow, newCol);
+            case KING -> validateKingMove(board, row, col, newRow, newCol);
+            default -> validatePawnMove(board, row, col, newRow, newCol, pieceIsWhite, isCapture);
+        };
 
         if (!validMove) {
             return false;
@@ -133,11 +131,12 @@ public class ChessEngine {
         return false;
     }
 
-    private boolean validateBishopMove(int row, int col, int newRow, int newCol) {
+    private boolean validateBishopMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
         boolean neBlocked = false;
         boolean nwBlocked = false;
         boolean seBlocked = false;
         boolean swBlocked = false;
+
         for (int i = 0; i < 8; i++) {
             if (!nwBlocked) {
                 if (row - i < 0 || col - i < 0) {
@@ -179,30 +178,31 @@ public class ChessEngine {
         return false;
     }
 
-    private boolean validateRookMove(int row, int col, int newRow, int newCol) {
+    private boolean validateRookMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
         if (row == newRow || col == newCol) {
             return true;
         }
         return false;
     }
 
-    private boolean validateQueenMove(int row, int col, int newRow, int newCol) {
-        if (validateBishopMove(row, col, newRow, newCol)
-                || validateRookMove(row, col, newRow, newCol)) {
+    private boolean validateQueenMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
+        if (validateBishopMove(board, row, col, newRow, newCol)
+                || validateRookMove(board, row, col, newRow, newCol)) {
             return true;
         }
 
         return false;
     }
 
-    private boolean validateKingMove(int row, int col, int newRow, int newCol) {
+    private boolean validateKingMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
         if (Math.abs(row - newRow) <= 1 && Math.abs(col - newCol) <= 1) {
             return true;
         }
         return false;
     }
 
-    private boolean validatePawnMove(int row, int col, int newRow, int newCol, boolean pieceIsWhite, boolean capture) {
+    private boolean validatePawnMove(ChessPiece[][] board, int row, int col, int newRow, int newCol,
+            boolean pieceIsWhite, boolean capture) {
         if (!capture) {
             if (pieceIsWhite && newRow - row == 1 && newCol == col) {
                 return true;
@@ -250,28 +250,14 @@ public class ChessEngine {
                 isWhite = true;
                 continue;
             }
-            PieceType type;
-
-            switch (boardStr.charAt(i)) {
-                case 'R':
-                    type = PieceType.ROOK;
-                    break;
-                case 'N':
-                    type = PieceType.KNIGHT;
-                    break;
-                case 'B':
-                    type = PieceType.BISHOP;
-                    break;
-                case 'Q':
-                    type = PieceType.QUEEN;
-                    break;
-                case 'K':
-                    type = PieceType.KING;
-                    break;
-                default:
-                    type = PieceType.PAWN;
-                    break;
-            }
+            PieceType type = switch (boardStr.charAt(i)) {
+                case 'R' -> PieceType.ROOK;
+                case 'N' -> PieceType.KNIGHT;
+                case 'B' -> PieceType.BISHOP;
+                case 'Q' -> PieceType.QUEEN;
+                case 'K' -> PieceType.KING;
+                default -> PieceType.PAWN;
+            };
 
             BoardPosition pos;
             ChessPiece piece = new ChessPiece(type, isWhite);

@@ -59,12 +59,14 @@ public class ChessMoveController {
 
     private void sendMoveErrorMessage(String gameId, String player, String board) {
         final String destination = "/" + gameId;
-        final String payload = gson.toJson(new MoveErrorMessage(gameId, HttpStatus.BAD_REQUEST, "bad move", board));
+        final String payload = gson.toJson(new MoveErrorMessage(gameId, HttpStatus.BAD_REQUEST,
+                "bad move", board));
         simpMessagingTemplate.convertAndSendToUser(player, destination, payload);
     }
 
     private void sendBoardUpdate(String gameId, String board) {
-        final String payload = gson.toJson(new MoveMessage(gameId, HttpStatus.OK, GameState.NORMAL, board));
+        final String payload = gson.toJson(new MoveMessage(gameId, HttpStatus.OK, GameState.NORMAL,
+                board));
         simpMessagingTemplate.convertAndSend("/game-messaging/moves/" + gameId, payload);
     }
 }

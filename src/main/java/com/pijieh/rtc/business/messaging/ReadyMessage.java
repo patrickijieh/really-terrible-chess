@@ -11,5 +11,7 @@ public class ReadyMessage {
     @NonNull
     String board;
 
+    boolean isPlayerWhite;
+
     boolean ready = true;
 }

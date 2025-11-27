@@ -15,6 +15,7 @@ public class MoveMessage {
     @NonNull
     HttpStatus status;
 
+    @NonNull
     GameState gameState;
 
     @NonNull

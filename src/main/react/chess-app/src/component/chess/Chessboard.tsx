@@ -17,7 +17,7 @@ const ChessBoard = (props: ChessBoardProps) => {
     const dragRef = useRef<EventTarget>(null);
 
     const createChessBoard = (boardStr: string) => {
-        if (boardStr.length === 0) {
+        if (!boardStr || boardStr.length === 0) {
             boardStr = STARTING_BLACK + "|" + STARTING_WHITE;
         }
 

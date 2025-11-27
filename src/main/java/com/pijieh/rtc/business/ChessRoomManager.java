@@ -86,7 +86,8 @@ public final class ChessRoomManager {
                 game.getPlayerTwo().getUsername().equals(playerName);
     }
 
-    public void setPlayerSession(String socketSessionId, String playerName, String gameId) throws RuntimeException {
+    public void setPlayerSession(String socketSessionId, String playerName, String gameId)
+            throws RuntimeException {
         ChessGame game = chessGames.get(gameId);
 
         // Should not happen

@@ -9,6 +9,7 @@ const ChessGame = () => {
 
     const [wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
     const [boardStr, setBoardStr] = useState("");
+    const [isPlayerWhite, setPlayerWhite] = useState(true);
     const [gameData, setGameData] = useState({
         player: "You",
         opponent: "Opponent"
@@ -25,11 +26,23 @@ const ChessGame = () => {
         startWebSocketClient();
     }, []);
 
-    const updateGameState = (board: string, opp: string, username: string) => {
-        setGameData({
-            player: username,
-            opponent: opp
-        })
+    const updateGameState = (board: string, opp: string, username: string, isWhite?: boolean) => {
+        if (isWhite !== undefined) {
+            setGameData({
+                ...gameData,
+                player: username,
+                opponent: opp
+            });
+            setPlayerWhite(isWhite);
+        } else {
+            setGameData({
+                ...gameData,
+                player: username,
+                opponent: opp
+            });
+        }
+
+        console.log(isPlayerWhite);
 
         setBoardStr(board);
     }
@@ -51,17 +64,19 @@ const ChessGame = () => {
         wsClient.sendMove(move);
     }
 
+
+    const playerTitle = `${gameData.player} (You)`;
     return (
         <div className="content">
             <SessionID />
-            <PlayerInformation playerName={gameData.opponent}
-                isYou={false}
+            <PlayerInformation playerName={isPlayerWhite ? gameData.opponent : playerTitle}
+                bottom={false}
             />
             <div id="chesstable" className="chesstable">
-                <ChessBoard board={boardStr} sendMove={sendMove} />
+                <ChessBoard board={boardStr} sendMove={sendMove} isWhite={isPlayerWhite} />
             </div>
-            <PlayerInformation playerName={`${gameData.player} (You)`}
-                isYou={true}
+            <PlayerInformation playerName={isPlayerWhite ? playerTitle : gameData.opponent}
+                bottom={true}
             />
         </div>
     );

@@ -55,22 +55,24 @@ public class GameController {
 
         final Player[] players = chessRoomManager.getPlayersFromGame(gameId);
 
-        final String body = gson.toJson(new JoinMessage(gameId,
-                players));
+        final String body = gson.toJson(new JoinMessage(gameId, players));
 
         simpMessagingTemplate.convertAndSend("/game-messaging/info/" + gameId, body);
 
         if (chessRoomManager.getGameStateFromId(gameId) == GameState.READY) {
             final String board = chessRoomManager.startGame(gameId);
-            sendGameReadyMessage(gameId, board, players[0].getUsername(), players[1].getUsername());
+            sendGameReadyMessage(gameId, board, players[0].getUsername(),
+                    players[1].getUsername());
         }
     }
 
-    private void sendGameReadyMessage(String gameId, String board, String playerA, String playerB) {
+    private void sendGameReadyMessage(String gameId, String board, String playerOne, String playerTwo) {
         final String destination = "/" + gameId;
-        final String payload = gson.toJson(new ReadyMessage(gameId, board));
 
-        simpMessagingTemplate.convertAndSendToUser(playerA, destination, payload);
-        simpMessagingTemplate.convertAndSendToUser(playerB, destination, payload);
+        final String payloadOne = gson.toJson(new ReadyMessage(gameId, board, true));
+        final String payloadTwo = gson.toJson(new ReadyMessage(gameId, board, false));
+
+        simpMessagingTemplate.convertAndSendToUser(playerOne, destination, payloadOne);
+        simpMessagingTemplate.convertAndSendToUser(playerTwo, destination, payloadTwo);
     }
 }

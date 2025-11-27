@@ -26,27 +26,14 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        String symbol;
-        switch (type) {
-            case KNIGHT:
-                symbol = "N";
-                break;
-            case BISHOP:
-                symbol = "B";
-                break;
-            case ROOK:
-                symbol = "R";
-                break;
-            case QUEEN:
-                symbol = "Q";
-                break;
-            case KING:
-                symbol = "K";
-                break;
-            default:
-                symbol = "";
-                break;
-        }
+        String symbol = switch (type) {
+            case KNIGHT -> "N";
+            case BISHOP -> "B";
+            case ROOK -> "R";
+            case QUEEN -> "Q";
+            case KING -> "K";
+            default -> new String();
+        };
 
         return symbol;
     }

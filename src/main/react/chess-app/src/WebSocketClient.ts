@@ -12,8 +12,9 @@ type UserMessage = {
     gameId: string,
     message?: string,
     board?: string,
-    ready?: boolean
-    status?: string
+    ready?: boolean,
+    status?: string,
+    isPlayerWhite?: boolean
 };
 
 type Player = {
@@ -94,7 +95,9 @@ class WebSocketClient {
 
     private handleGameMoves(msg: Message) {
         let msgBody: UserMessage = JSON.parse(msg.body);
-        console.log(msgBody);
+        if (msgBody.board && this.updateGameState) {
+            this.updateGameState(msgBody.board, this.getOpponent(), this.username_);
+        }
     }
 
     private changeOpponent(players: Player[]) {
@@ -123,8 +126,11 @@ class WebSocketClient {
     private handleUserMessaging(msg: Message) {
         let msgBody: UserMessage = JSON.parse(msg.body);
         if (msgBody.board && this.updateGameState) {
-            if (msgBody.message) { console.log(msgBody.message); }
-            this.updateGameState(msgBody.board, this.getOpponent(), this.username_);
+            if (msgBody.isPlayerWhite !== undefined) {
+                this.updateGameState(msgBody.board, this.getOpponent(), this.username_, msgBody.isPlayerWhite);
+            } else {
+                this.updateGameState(msgBody.board, this.getOpponent(), this.username_);
+            }
         }
     }
 }
