@@ -132,56 +132,77 @@ public class ChessEngine {
     }
 
     private boolean validateBishopMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
-        boolean neBlocked = false;
-        boolean nwBlocked = false;
-        boolean seBlocked = false;
-        boolean swBlocked = false;
+        int rowDistance = Math.abs(row - newRow);
+        int colDistance = Math.abs(col - newCol);
 
-        for (int i = 0; i < 8; i++) {
-            if (!nwBlocked) {
-                if (row - i < 0 || col - i < 0) {
-                    nwBlocked = true;
+        if (rowDistance != colDistance || rowDistance == 0) {
+            return false;
+        }
+
+        boolean directedNorth = newRow > row;
+        boolean directedWest = newCol < col;
+        for (int i = 1; i < rowDistance; i++) {
+            if (directedNorth) {
+                if (directedWest) {
+                    if (board[row + i][col - i] != null) {
+                        return false;
+                    }
                 } else {
-                    if (row - i == newRow && col - i == newCol) {
-                        return true;
+                    if (board[row + i][col + i] != null) {
+                        return false;
                     }
                 }
-            }
-            if (!neBlocked) {
-                if (row - i < 0 || col + i > 7) {
-                    neBlocked = true;
-                } else {
-                    if (row - i == newRow && col + i == newCol) {
-                        return true;
+            } else {
+                if (directedWest) {
+                    if (board[row - i][col - i] != null) {
+                        return false;
                     }
-                }
-            }
-            if (!swBlocked) {
-                if (row + i > 7 || col - i < 0) {
-                    neBlocked = true;
                 } else {
-                    if (row + i == newRow && col - i == newCol) {
-                        return true;
-                    }
-                }
-            }
-            if (!seBlocked) {
-                if (row + i < 7 || col + i > 7) {
-                    neBlocked = true;
-                } else {
-                    if (row + i == newRow && col + i == newCol) {
-                        return true;
+                    if (board[row - i][col + i] != null) {
+                        return false;
                     }
                 }
             }
         }
-        return false;
+
+        return true;
     }
 
     private boolean validateRookMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
-        if (row == newRow || col == newCol) {
+        if (row == newRow && col != newCol) {
+            boolean directedWest = newCol < col;
+            int colDistance = Math.abs(col - newCol);
+            for (int i = 1; i < colDistance; i++) {
+                if (directedWest) {
+                    if (board[row][col - i] != null) {
+                        return false;
+                    }
+                } else {
+                    if (board[row][col + i] != null) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } else if (row != newRow && col == newCol) {
+            boolean directedNorth = newRow > row;
+            int rowDistance = Math.abs(row - newRow);
+            for (int i = 1; i < rowDistance; i++) {
+                if (directedNorth) {
+                    if (board[row + i][col] != null) {
+                        return false;
+                    }
+                } else {
+                    if (board[row - i][col] != null) {
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
+
         return false;
     }
 
@@ -203,16 +224,16 @@ public class ChessEngine {
 
     private boolean validatePawnMove(ChessPiece[][] board, int row, int col, int newRow, int newCol,
             boolean pieceIsWhite, boolean capture) {
-        if (!capture) {
-            if (pieceIsWhite && newRow - row == 1 && newCol == col) {
-                return true;
-            } else if (!pieceIsWhite && row - newRow == 1 && newCol == col) {
-                return true;
-            }
-        } else {
+        if (capture) {
             if (pieceIsWhite && newRow - row == 1 && Math.abs(col - newCol) == 1) {
                 return true;
             } else if (!pieceIsWhite && row - newRow == 1 && Math.abs(col - newCol) == 1) {
+                return true;
+            }
+        } else {
+            if (pieceIsWhite && newRow - row <= 2 && newRow - row > 0 && col == newCol) {
+                return true;
+            } else if (!pieceIsWhite && row - newRow <= 2 && row - newRow > 0 && col == newCol) {
                 return true;
             }
         }
@@ -301,17 +322,40 @@ public class ChessEngine {
                     continue;
                 }
                 if (piece.isWhite()) {
-                    whitePieces.append(piece.toString()
-                            + convertPositionToString(i, j));
+                    if (piece.getType() == PieceType.PAWN) {
+                        whitePieces.append(convertPositionToString(i, j));
+                    } else {
+                        whitePieces.append(piece.toString()
+                                + convertPositionToString(i, j));
+                    }
                 } else {
-                    blackPieces.append(piece.toString()
-                            + convertPositionToString(i, j));
+                    if (piece.getType() == PieceType.PAWN) {
+                        blackPieces.append(convertPositionToString(i, j));
+                    } else {
+                        blackPieces.append(piece.toString()
+                                + convertPositionToString(i, j));
+                    }
 
                 }
             }
         }
 
         return blackPieces.toString() + "|" + whitePieces.toString();
+    }
+
+    private void debugBoard(ChessPiece[][] board) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (board[i][j] == null) {
+                    sb.append("_ ");
+                } else {
+                    sb.append(board[i][j].toString() + " ");
+                }
+            }
+            log.info(sb.toString());
+            sb.setLength(0);
+        }
     }
 }
 

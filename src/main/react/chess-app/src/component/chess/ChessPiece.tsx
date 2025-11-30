@@ -41,7 +41,8 @@ const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
         <>
             <img src={imgSrc}
                 alt={`${isWhite ? "WHITE" : "BLACK"} ${type}`}
-                draggable={true}
+                draggable={false}
+                className="no-select"
                 {... { "piece-type": type, "piece-color": (isWhite ? "WHITE" : "BLACK") }}
             />
         </>

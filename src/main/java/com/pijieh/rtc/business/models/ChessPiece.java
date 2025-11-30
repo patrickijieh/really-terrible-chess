@@ -32,6 +32,7 @@ public class ChessPiece {
             case ROOK -> "R";
             case QUEEN -> "Q";
             case KING -> "K";
+            case PAWN -> "P";
             default -> new String();
         };
 

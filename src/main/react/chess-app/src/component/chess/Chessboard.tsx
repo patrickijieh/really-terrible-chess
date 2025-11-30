@@ -94,6 +94,11 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (event.button !== 0) {
             return;
         }
+
+        if (props.isPlayerWhite !== isWhite) {
+            return;
+        }
+
         let target = event.currentTarget;
         dragRef.current = target;
         let clone = target.cloneNode(true).firstChild!;
@@ -127,7 +132,11 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handlePieceMoveEnd = (_event: MouseEvent<Element>, _row: number, _col: number) => {
+    const handlePieceMoveEnd = (_event: MouseEvent<Element>, isWhite: boolean, _row: number, _col: number) => {
+        if (props.isPlayerWhite !== isWhite) {
+            return;
+        }
+
         setDragging(false);
         setDropped(true);
         if (draggedClone) {

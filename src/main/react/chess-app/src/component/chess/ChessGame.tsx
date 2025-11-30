@@ -42,8 +42,6 @@ const ChessGame = () => {
             });
         }
 
-        console.log(isPlayerWhite);
-
         setBoardStr(board);
     }
 
@@ -73,7 +71,7 @@ const ChessGame = () => {
                 bottom={false}
             />
             <div id="chesstable" className="chesstable">
-                <ChessBoard board={boardStr} sendMove={sendMove} isWhite={isPlayerWhite} />
+                <ChessBoard board={boardStr} sendMove={sendMove} isPlayerWhite={isPlayerWhite} />
             </div>
             <PlayerInformation playerName={isPlayerWhite ? playerTitle : gameData.opponent}
                 bottom={true}
