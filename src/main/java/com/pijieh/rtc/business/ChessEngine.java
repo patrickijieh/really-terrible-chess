@@ -18,7 +18,7 @@ public class ChessEngine {
         defaultBoard = parseBoard(defaultBoardStr);
     }
 
-    public boolean checkIfValidMove(String moveStr, GameState gameState) {
+    public boolean checkIfValidMove(String moveStr, GameState gameState, boolean isPlayerWhite) {
         if (gameState != GameState.NORMAL && gameState != GameState.CHECK) {
             return false;
         }
@@ -32,6 +32,12 @@ public class ChessEngine {
         }
 
         if (moveStr.charAt(0) != 'w' && moveStr.charAt(0) != 'b') {
+            return false;
+        }
+
+        if ((moveStr.charAt(0) == 'w' && !isPlayerWhite) || (moveStr.charAt(0) == 'b' && isPlayerWhite)) {
+            log.info(isPlayerWhite + "");
+            log.info("big mistake");
             return false;
         }
 
@@ -231,10 +237,18 @@ public class ChessEngine {
                 return true;
             }
         } else {
-            if (pieceIsWhite && newRow - row <= 2 && newRow - row > 0 && col == newCol) {
-                return true;
-            } else if (!pieceIsWhite && row - newRow <= 2 && row - newRow > 0 && col == newCol) {
-                return true;
+            if (pieceIsWhite && col == newCol) {
+                if (newRow - row == 1) {
+                    return true;
+                } else if (newRow - row == 2 && row == 1) {
+                    return true;
+                }
+            } else if (!pieceIsWhite && col == newCol) {
+                if (row - newRow == 1) {
+                    return true;
+                } else if (row - newRow == 2 && row == boardSize - 2) {
+                    return true;
+                }
             }
         }
         return false;

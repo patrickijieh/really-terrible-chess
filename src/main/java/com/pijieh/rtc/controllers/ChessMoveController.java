@@ -41,7 +41,8 @@ public class ChessMoveController {
             @Payload ChessMove move, StompHeaderAccessor headerAccessor) {
 
         GameState gameState = chessRoomManager.getGameStateFromId(gameId);
-        if (!chessEngine.checkIfValidMove(move.getMove(), gameState)) {
+        String whiteUsername = chessRoomManager.getPlayersFromGame(gameId)[0].getUsername();
+        if (!chessEngine.checkIfValidMove(move.getMove(), gameState, whiteUsername.equals(move.getUsername()))) {
             sendMoveErrorMessage(gameId, move.getUsername(),
                     chessRoomManager.getChessboardFromId(gameId));
             return;
