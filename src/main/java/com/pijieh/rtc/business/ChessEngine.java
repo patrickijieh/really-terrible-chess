@@ -4,6 +4,7 @@ import com.pijieh.rtc.business.models.ChessPiece;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.business.models.ChessPiece.PieceType;
 
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,7 +24,7 @@ public class ChessEngine {
             return false;
         }
 
-        if (moveStr.length() < 6 || moveStr.length() > 7) {
+        if (moveStr.length() < 6 || moveStr.length() > 8) {
             return false;
         }
 
@@ -36,8 +37,6 @@ public class ChessEngine {
         }
 
         if ((moveStr.charAt(0) == 'w' && !isPlayerWhite) || (moveStr.charAt(0) == 'b' && isPlayerWhite)) {
-            log.info(isPlayerWhite + "");
-            log.info("big mistake");
             return false;
         }
 
@@ -53,10 +52,18 @@ public class ChessEngine {
 
         if (type == PieceType.PAWN) {
             oldPos = convertStringToPosition(moveStr.substring(1, 3));
-            newPos = convertStringToPosition(moveStr.substring(4));
+            if (isCapture) {
+                newPos = convertStringToPosition(moveStr.substring(5));
+            } else {
+                newPos = convertStringToPosition(moveStr.substring(4));
+            }
         } else {
             oldPos = convertStringToPosition(moveStr.substring(2, 4));
-            newPos = convertStringToPosition(moveStr.substring(5));
+            if (isCapture) {
+                newPos = convertStringToPosition(moveStr.substring(6));
+            } else {
+                newPos = convertStringToPosition(moveStr.substring(5));
+            }
         }
 
         boolean validMove = validateMove(board, type, pieceIsWhite, isCapture, oldPos.getRow(),
@@ -373,7 +380,7 @@ public class ChessEngine {
     }
 }
 
-@lombok.Value
+@Value
 class BoardPosition {
     int row;
     int col;

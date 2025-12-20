@@ -37,10 +37,17 @@ const ChessBoard = (props: ChessBoardProps) => {
             newBoard.push(column);
         }
 
+
+        const newPieceBoard: ChessPieceInfo[][] = new Array<ChessPieceInfo[]>(BOARD_SIZE);
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            newPieceBoard[i] = new Array<ChessPieceInfo>(BOARD_SIZE);
+        }
+
         pieces.map(piece => {
             let pos = convertStringToPosition(piece.pos);
             let rowNumber = pos.row;
             let columnNumber = pos.col;
+
 
             newBoard[BOARD_SIZE - rowNumber - 1][columnNumber] =
                 <ChessSquare
@@ -52,9 +59,11 @@ const ChessBoard = (props: ChessBoardProps) => {
                     handlePieceMoveEnd={handlePieceMoveEnd}
                     handleDrop={handleDrop}
                 />;
+
+            newPieceBoard[BOARD_SIZE - rowNumber - 1][columnNumber] = piece;
         });
 
-        return newBoard;
+        return { board: newBoard, pieceBoard: newPieceBoard };
     };
 
     const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
@@ -63,6 +72,12 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
 
         handlePieceMove(event);
+    }
+
+    const handlePieceMove = (event: MouseEvent) => {
+        if (draggedClone != null) {
+            moveClone(event, draggedClone);
+        }
     }
 
     const convertStringToPosition = (pos: string) => {
@@ -117,12 +132,6 @@ const ChessBoard = (props: ChessBoardProps) => {
         showAvailableMoves(pieceRank, pos, isWhite);
     }
 
-    const handlePieceMove = (event: MouseEvent) => {
-        if (draggedClone != null) {
-            moveClone(event, draggedClone);
-        }
-    }
-
     const moveClone = (event: MouseEvent, clone?: HTMLImageElement) => {
         if (clone) {
             clone.style.position = "absolute";
@@ -162,7 +171,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         let draggedPieceType = dragRef.current.firstChild.getAttribute("piece-type");
         let draggedPieceColor = dragRef.current.firstChild.getAttribute("piece-color");
 
-        let pieceColor = "";
+        let pieceColor: string = "";
         switch (draggedPieceColor) {
             case "BLACK":
                 pieceColor = "b";
@@ -198,8 +207,29 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (pos !== undefined) {
             oldPosition = convertIdToAlgebraicNotation(pos);
         }
+
+        let newSquare = document.getElementById(`${(BOARD_SIZE - row - 1) * (BOARD_SIZE) + col}`);
+        if (pos === `${(BOARD_SIZE - row - 1) * (BOARD_SIZE) + col}`) {
+            setDropped(false);
+            return;
+        }
+
+        let capture = false;
+        if (newSquare?.childElementCount !== 0 && newSquare?.firstChild?.firstChild instanceof HTMLImageElement) {
+            let otherPieceColor = newSquare?.firstChild.firstChild.getAttribute("piece-color");
+            console.log("piece detected");
+            if (otherPieceColor !== draggedPieceColor) {
+                console.log("different colors");
+                capture = true;
+            }
+        }
+
         setDropped(false);
         let newPosition = convertPositionToString(row, col);
+        if (capture) {
+            newPosition = "x" + newPosition;
+        }
+        clearValidMoves();
         props.sendMove(pieceColor + pieceNotation + oldPosition + ">" + newPosition);
     }
 
@@ -265,8 +295,9 @@ const ChessBoard = (props: ChessBoardProps) => {
         let southEastBlocked = false;
 
         for (let i = 1; i < BOARD_SIZE; i++) {
-            if (!northWestBlocked && row - i < BOARD_SIZE && col - i < BOARD_SIZE) {
-                const nWestSquareId = (row - i) * BOARD_SIZE + (col - i);
+            console.log(row * BOARD_SIZE + col);
+            if (!northWestBlocked && row + i < BOARD_SIZE && col - i >= 0) {
+                const nWestSquareId = (BOARD_SIZE - (row + i + 1)) * BOARD_SIZE + (col - i);
                 const nWestSquare = document.getElementById(`${nWestSquareId}`)?.children[0];
                 if (nWestSquare !== null && nWestSquare?.childElementCount === 0) {
                     validSquares.push(nWestSquareId);
@@ -275,8 +306,8 @@ const ChessBoard = (props: ChessBoardProps) => {
                 }
             }
 
-            if (!southWestBlocked && row + i >= 0 && col - i < BOARD_SIZE) {
-                const sWestSquareId = (row + i) * BOARD_SIZE + (col - i);
+            if (!southWestBlocked && row - i >= 0 && col - i >= 0) {
+                const sWestSquareId = (BOARD_SIZE - (row - i + 1)) * BOARD_SIZE + (col - i);
                 const sWestSquare = document.getElementById(`${sWestSquareId}`)?.children[0];
                 if (sWestSquare !== null && sWestSquare?.childElementCount === 0) {
                     validSquares.push(sWestSquareId);
@@ -285,8 +316,8 @@ const ChessBoard = (props: ChessBoardProps) => {
                 }
             }
 
-            if (!northEastBlocked && row - i < BOARD_SIZE && col + i >= 0) {
-                const nEastSquareId = (row - i) * BOARD_SIZE + (col + i);
+            if (!northEastBlocked && row + i < BOARD_SIZE && col + i < BOARD_SIZE) {
+                const nEastSquareId = (BOARD_SIZE - (row + i + 1)) * BOARD_SIZE + (col + i);
                 const nEastSquare = document.getElementById(`${nEastSquareId}`)?.children[0];
                 if (nEastSquare !== null && nEastSquare?.childElementCount === 0) {
                     validSquares.push(nEastSquareId);
@@ -295,8 +326,8 @@ const ChessBoard = (props: ChessBoardProps) => {
                 }
             }
 
-            if (!southEastBlocked && row + i >= 0 && col + i >= 0) {
-                const sEastSquareId = (row + i) * BOARD_SIZE + (col + i);
+            if (!southEastBlocked && row - i >= 0 && col + i < BOARD_SIZE) {
+                const sEastSquareId = (BOARD_SIZE - (row - i + 1)) * BOARD_SIZE + (col + i);
                 const sEastSquare = document.getElementById(`${sEastSquareId}`)?.children[0];
                 if (sEastSquare !== null && sEastSquare?.childElementCount === 0) {
                     validSquares.push(sEastSquareId);
@@ -314,16 +345,16 @@ const ChessBoard = (props: ChessBoardProps) => {
 
         const left = col - 1;
         const right = col + 1;
-        const top = row - 1;
-        const bottom = row + 1;
-        const lSquare = document.getElementById(`${row * BOARD_SIZE + left}`)?.children[0];
-        const rSquare = document.getElementById(`${row * BOARD_SIZE + right}`)?.children[0];
+        const top = BOARD_SIZE - row - 2;
+        const bottom = BOARD_SIZE - row;
+        const lSquare = document.getElementById(`${(BOARD_SIZE - (row + 1)) * BOARD_SIZE + left}`)?.children[0];
+        const rSquare = document.getElementById(`${(BOARD_SIZE - (row + 1)) * BOARD_SIZE + right}`)?.children[0];
         const tSquare = document.getElementById(`${top * BOARD_SIZE + col}`)?.children[0];
         const bSquare = document.getElementById(`${bottom * BOARD_SIZE + col}`)?.children[0];
 
         if (lSquare !== null) {
             if (lSquare?.childElementCount === 0) {
-                validSquares.push(row * BOARD_SIZE + left);
+                validSquares.push((BOARD_SIZE - (row + 1)) * BOARD_SIZE + left);
             }
             if (tSquare !== null) {
                 const topLeftSquare = document.getElementById(`${top * BOARD_SIZE + left}`)
@@ -343,7 +374,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
         if (rSquare !== null) {
             if (rSquare?.childElementCount === 0) {
-                validSquares.push(row * BOARD_SIZE + right);
+                validSquares.push((BOARD_SIZE - (row + 1)) * BOARD_SIZE + right);
             }
             if (tSquare !== null) {
                 const topRightSquare = document.getElementById(`${top * BOARD_SIZE + right}`)
@@ -432,7 +463,6 @@ const ChessBoard = (props: ChessBoardProps) => {
         // if the pawn reaches the last row, its no longer a pawn. No need to check if the move goes past the last rank
         const validSquares: number[] = [];
 
-        console.log(row);
         if (isWhitePawn) {
             const firstSquareId = (BOARD_SIZE - (row + 2)) * BOARD_SIZE + (col);
             const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
@@ -476,7 +506,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         let rightBlocked = false;
         for (let i = 1; i < BOARD_SIZE; i++) {
             if (row + i < BOARD_SIZE && !btmBlocked) {
-                const btmSquareId = (row + i) * BOARD_SIZE + col;
+                const btmSquareId = (BOARD_SIZE - (row + i + 1)) * BOARD_SIZE + col;
                 const btmSquare = document.getElementById(`${btmSquareId}`)?.children[0];
                 if (btmSquare !== null && btmSquare?.childElementCount === 0) {
                     validSquares.push(btmSquareId);
@@ -486,7 +516,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             if (row - i >= 0 && !topBlocked) {
-                const topSquareId = (row - i) * BOARD_SIZE + col;
+                const topSquareId = (BOARD_SIZE - (row - i + 1)) * BOARD_SIZE + col;
                 const topSquare = document.getElementById(`${topSquareId}`)?.children[0];
                 if (topSquare !== null && topSquare?.childElementCount === 0) {
                     validSquares.push(topSquareId);
@@ -496,7 +526,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             if (col + i < BOARD_SIZE && !leftBlocked) {
-                const leftSquareId = row * BOARD_SIZE + (col + i);
+                const leftSquareId = (BOARD_SIZE - (row + 1)) * BOARD_SIZE + (col + i);
                 const leftSquare = document.getElementById(`${leftSquareId}`)?.children[0];
                 if (leftSquare !== null && leftSquare?.childElementCount === 0) {
                     validSquares.push(leftSquareId);
@@ -506,7 +536,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             if (col - i >= 0 && !rightBlocked) {
-                const rightSquareId = row * BOARD_SIZE + (col - i);
+                const rightSquareId = (BOARD_SIZE - (row + 1)) * BOARD_SIZE + (col - i);
                 const rightSquare = document.getElementById(`${rightSquareId}`)?.children[0];
                 if (rightSquare !== null && rightSquare?.childElementCount === 0) {
                     validSquares.push(rightSquareId);
@@ -567,9 +597,12 @@ const ChessBoard = (props: ChessBoardProps) => {
         return board;
     }
 
-    const board = createChessBoard(props.board);
+    const { board, pieceBoard } = createChessBoard(props.board);
+    pieceBoard;
 
     let squareId = 0;
+    let rowNumber = 0;
+    let colNumber = 0;
     return (
         <div
             className="chessboard"
@@ -577,13 +610,17 @@ const ChessBoard = (props: ChessBoardProps) => {
                 handleMouseMove(event)}>
             <table>
                 {board.map(row => {
-                    return (<tr>
+                    let tr = <tr>
                         {row.map(elem => {
-                            let td = <td key={squareId} id={`${squareId}`}>{elem}</td>;
+                            let td = <td key={squareId} id={`${squareId}`}
+                                {... { "row": rowNumber, "column": colNumber }}>{elem}</td>;
                             squareId++;
+                            colNumber++;
                             return td;
                         })}
-                    </tr>)
+                    </tr>;
+                    rowNumber++;
+                    return tr;
                 }
                 )}
             </table>
