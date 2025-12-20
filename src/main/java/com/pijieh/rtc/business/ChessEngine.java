@@ -66,6 +66,10 @@ public class ChessEngine {
             }
         }
 
+        if (newPos == null || oldPos == null) {
+            return false;
+        }
+
         boolean validMove = validateMove(board, type, pieceIsWhite, isCapture, oldPos.getRow(),
                 oldPos.getCol(), newPos.getRow(), newPos.getCol());
 
@@ -322,7 +326,12 @@ public class ChessEngine {
             return null;
         }
 
-        int row = Integer.parseInt(pos.substring(1, 2)) - 1;
+        int row;
+        try {
+            row = Integer.parseInt(pos.substring(1, 2)) - 1;
+        } catch (NumberFormatException e) {
+            return null;
+        }
         int col = pos.charAt(0) - 'a';
 
         return new BoardPosition(row, col);
@@ -361,7 +370,7 @@ public class ChessEngine {
             }
         }
 
-        return blackPieces.toString() + "|" + whitePieces.toString();
+        return whitePieces.toString() + "|" + blackPieces.toString();
     }
 
     private void debugBoard(ChessPiece[][] board) {

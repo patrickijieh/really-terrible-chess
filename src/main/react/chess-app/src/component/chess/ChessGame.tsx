@@ -67,13 +67,13 @@ const ChessGame = () => {
     return (
         <div className="content">
             <SessionID />
-            <PlayerInformation playerName={isPlayerWhite ? gameData.opponent : playerTitle}
+            <PlayerInformation playerName={gameData.opponent ? gameData.opponent : "Opponent"}
                 bottom={false}
             />
             <div id="chesstable" className="chesstable">
                 <ChessBoard board={boardStr} sendMove={sendMove} isPlayerWhite={isPlayerWhite} />
             </div>
-            <PlayerInformation playerName={isPlayerWhite ? playerTitle : gameData.opponent}
+            <PlayerInformation playerName={playerTitle}
                 bottom={true}
             />
         </div>

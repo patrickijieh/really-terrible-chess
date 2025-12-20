@@ -9,8 +9,7 @@ const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd
         return (
             <div
                 className={squareClass}
-                //onMouseUp={(event) => handlePieceMoveEnd!(event, row, col)}
-                onMouseOver={(event) => { handleDrop!(event, row, col) }}
+                onMouseOver={() => { handleDrop!(row, col) }}
             >
             </div>
         )
@@ -21,8 +20,8 @@ const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd
             onMouseDown={(event) =>
                 handlePieceMoveStart!(event, chessPieceProps!.type, chessPieceProps!.pos,
                     chessPieceProps!.isWhite)}
-            onMouseUp={(event) => handlePieceMoveEnd!(event, chessPieceProps!.isWhite, row, col)}
-            onMouseOver={(event) => { handleDrop!(event, row, col) }}
+            onMouseUp={() => handlePieceMoveEnd!(chessPieceProps!.isWhite)}
+            onMouseOver={() => { handleDrop!(row, col) }}
             className={squareClass}
         >
             <ChessPiece

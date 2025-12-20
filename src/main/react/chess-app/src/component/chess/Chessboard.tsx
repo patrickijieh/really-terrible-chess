@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent, type JSX, type MouseEvent } from "react";
+import { useRef, useState, useEffect, type JSX, type MouseEvent } from "react";
 import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps } from "./types";
 import ChessSquare from "./ChessSquare";
 import "../../styles.css";
@@ -10,33 +10,24 @@ const PIECE_IMG_PIXEL_SIZE: number = 128;
 
 const ChessBoard = (props: ChessBoardProps) => {
 
-    const [validMoves, setValidMoves] = useState<number[]>([]);
+    const [chessPieceBoard, setChessPieceBoard] = useState<ChessPieceInfo[][]>([]);
+    const [validMoves, setValidMoves] = useState<string[]>([]);
     const [draggedClone, setDraggedClone] = useState<HTMLImageElement | null>();
     const [dragging, setDragging] = useState(false);
     const [dropped, setDropped] = useState(false);
     const dragRef = useRef<EventTarget>(null);
 
-    const createChessBoard = (boardStr: string) => {
+    useEffect(() => {
+        let pieceBoard = createChessPieceBoard(props.board);
+        setChessPieceBoard(pieceBoard);
+    }, [props.board]);
+
+    const createChessPieceBoard = (boardStr: string) => {
         if (!boardStr || boardStr.length === 0) {
-            boardStr = STARTING_BLACK + "|" + STARTING_WHITE;
+            boardStr = STARTING_WHITE + "|" + STARTING_BLACK;
         }
 
         let pieces = parseBoard(boardStr);
-
-        const newBoard: JSX.Element[][] = [];
-        for (let row = 1; row <= BOARD_SIZE; row++) {
-            let column = [];
-            for (let col = 0; col < BOARD_SIZE; col++) {
-                column.push(<ChessSquare isWhiteSquare={(row + col) % 2 == 0}
-                    row={BOARD_SIZE - row}
-                    col={col}
-                    handlePieceMoveEnd={handlePieceMoveEnd}
-                    handleDrop={handleDrop}
-                />);
-            }
-            newBoard.push(column);
-        }
-
 
         const newPieceBoard: ChessPieceInfo[][] = new Array<ChessPieceInfo[]>(BOARD_SIZE);
         for (let i = 0; i < BOARD_SIZE; i++) {
@@ -48,23 +39,47 @@ const ChessBoard = (props: ChessBoardProps) => {
             let rowNumber = pos.row;
             let columnNumber = pos.col;
 
-
-            newBoard[BOARD_SIZE - rowNumber - 1][columnNumber] =
-                <ChessSquare
-                    row={rowNumber}
-                    col={columnNumber}
-                    isWhiteSquare={(rowNumber + columnNumber) % 2 == 0}
-                    chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, piece.pos)}
-                    handlePieceMoveStart={handlePieceMoveStart}
-                    handlePieceMoveEnd={handlePieceMoveEnd}
-                    handleDrop={handleDrop}
-                />;
-
-            newPieceBoard[BOARD_SIZE - rowNumber - 1][columnNumber] = piece;
+            newPieceBoard[rowNumber][columnNumber] = piece;
         });
 
-        return { board: newBoard, pieceBoard: newPieceBoard };
+        return newPieceBoard;
     };
+
+    const createChessBoardSquares = (pieceBoard: ChessPieceInfo[][]) => {
+        const newBoard: JSX.Element[][] = [];
+        if (pieceBoard.length === 0) {
+            return newBoard;
+        }
+
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            let column = [];
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                let piece = pieceBoard[row][col];
+                if (piece != null) {
+                    column.push(<ChessSquare
+                        row={row}
+                        col={col}
+                        isWhiteSquare={(row + col) % 2 == 0}
+                        chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, piece.pos)}
+                        handlePieceMoveStart={handlePieceMoveStart}
+                        handlePieceMoveEnd={handlePieceMoveEnd}
+                        handleDrop={handleDrop}
+                    />);
+                } else {
+                    column.push(<ChessSquare
+                        isWhiteSquare={(row + col) % 2 == 0}
+                        row={row}
+                        col={col}
+                        handlePieceMoveEnd={handlePieceMoveEnd}
+                        handleDrop={handleDrop}
+                    />);
+                }
+            }
+            newBoard.push(column);
+        }
+
+        return newBoard;
+    }
 
     const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
         if (!dragging) {
@@ -82,7 +97,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     const convertStringToPosition = (pos: string) => {
         let row = pos.charAt(1);
-        let rowNumber = BOARD_SIZE - Number.parseInt(row);
+        let rowNumber = Number.parseInt(row) - 1;
         let columnNumber = pos.charCodeAt(0) - "a".charCodeAt(0);
 
         return {
@@ -97,20 +112,20 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const convertIdToAlgebraicNotation = (pos: string) => {
-        let num = Number.parseInt(pos);
-        let col = num % BOARD_SIZE;
-        let row = BOARD_SIZE - Math.floor(num / 8);
+        let split = pos.split(",");
+        let row = Number.parseInt(split[0]) + 1;
+        let col = Number.parseInt(split[1]);
 
         let colLetter = String.fromCharCode("a".charCodeAt(0) + col);
         return colLetter + row;
     }
 
-    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string, isWhite: boolean) => {
+    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string, isPieceWhite: boolean) => {
         if (event.button !== 0) {
             return;
         }
 
-        if (props.isPlayerWhite !== isWhite) {
+        if (props.isPlayerWhite !== isPieceWhite) {
             return;
         }
 
@@ -129,7 +144,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         event.stopPropagation();
         event.preventDefault();
         setDragging(true);
-        showAvailableMoves(pieceRank, pos, isWhite);
+        showAvailableMoves(pieceRank, pos, isPieceWhite);
     }
 
     const moveClone = (event: MouseEvent, clone?: HTMLImageElement) => {
@@ -141,7 +156,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handlePieceMoveEnd = (_event: MouseEvent<Element>, isWhite: boolean, _row: number, _col: number) => {
+    const handlePieceMoveEnd = (isWhite: boolean) => {
         if (props.isPlayerWhite !== isWhite) {
             return;
         }
@@ -158,7 +173,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
     }
 
-    const handleDrop = (_event: DragEvent<Element>, row: number, col: number) => {
+    const handleDrop = (row: number, col: number) => {
         if (!dropped) {
             return;
         }
@@ -208,8 +223,8 @@ const ChessBoard = (props: ChessBoardProps) => {
             oldPosition = convertIdToAlgebraicNotation(pos);
         }
 
-        let newSquare = document.getElementById(`${(BOARD_SIZE - row - 1) * (BOARD_SIZE) + col}`);
-        if (pos === `${(BOARD_SIZE - row - 1) * (BOARD_SIZE) + col}`) {
+        let newSquare = document.getElementById(`${row},${col}`);
+        if (pos === `${row},${col}`) {
             setDropped(false);
             return;
         }
@@ -233,41 +248,41 @@ const ChessBoard = (props: ChessBoardProps) => {
         props.sendMove(pieceColor + pieceNotation + oldPosition + ">" + newPosition);
     }
 
-    const showAvailableMoves = (pieceType: PieceType, pos: string, isWhite: boolean) => {
+    const showAvailableMoves = (pieceType: PieceType, pos: string, isPieceWhite: boolean) => {
         if (validMoves !== undefined && validMoves.length > 0) {
             clearValidMoves();
         }
         let piecePosition = convertStringToPosition(pos);
         let row: number = piecePosition.row;
         let col: number = piecePosition.col;
-        let validSquares: number[] = [];
+        let validSquareIds: string[] = [];
         switch (pieceType) {
             case PieceType.BISHOP:
-                validSquares = getBishopMoves(row, col);
+                validSquareIds = getBishopMoves(row, col);
                 break;
             case PieceType.KING:
-                validSquares = getKingMoves(row, col);
+                validSquareIds = getKingMoves(row, col);
                 break;
             case PieceType.KNIGHT:
-                validSquares = getKnightMoves(row, col);
+                validSquareIds = getKnightMoves(row, col);
                 break;
             case PieceType.PAWN:
-                validSquares = getPawnMoves(row, col, isWhite);
+                validSquareIds = getPawnMoves(row, col, isPieceWhite);
                 break;
             case PieceType.QUEEN:
-                validSquares = getBishopMoves(row, col).concat(getRookMoves(row, col));
+                validSquareIds = getQueenMoves(row, col);
                 break;
             case PieceType.ROOK:
-                validSquares = getRookMoves(row, col);
+                validSquareIds = getRookMoves(row, col);
                 break;
         }
-        validSquares.forEach(idx => {
+        validSquareIds.forEach(idx => {
             let squareElement = document.getElementById(`${idx}`)?.children[0];
             let squareClass = squareElement?.className;
             squareElement?.setAttribute("class", squareClass + " valid-move");
         });
 
-        setValidMoves(validMoves => validMoves.concat(validSquares));
+        setValidMoves(validMoves => validMoves.concat(validSquareIds));
     }
 
     const clearValidMoves = () => {
@@ -287,274 +302,255 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const getBishopMoves = (row: number, col: number) => {
-        let validSquares: number[] = [];
+        let validSquareIds: string[] = [];
 
-        let northWestBlocked = false;
-        let southWestBlocked = false;
-        let northEastBlocked = false;
-        let southEastBlocked = false;
+        let nWestBlocked = false;
+        let sWestBlocked = false;
+        let nEastBlocked = false;
+        let sEastBlocked = false;
 
         for (let i = 1; i < BOARD_SIZE; i++) {
-            console.log(row * BOARD_SIZE + col);
-            if (!northWestBlocked && row + i < BOARD_SIZE && col - i >= 0) {
-                const nWestSquareId = (BOARD_SIZE - (row + i + 1)) * BOARD_SIZE + (col - i);
-                const nWestSquare = document.getElementById(`${nWestSquareId}`)?.children[0];
-                if (nWestSquare !== null && nWestSquare?.childElementCount === 0) {
-                    validSquares.push(nWestSquareId);
+            if (!nWestBlocked && row + i < BOARD_SIZE && col - i >= 0) {
+                const nWestPiece = chessPieceBoard[row + i][col - i];
+                if (nWestPiece == null) {
+                    validSquareIds.push(`${row + i},${col - i}`);
                 } else {
-                    northWestBlocked = true;
+                    if (nWestPiece.isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row + i},${col - i}`);
+                    }
+                    nWestBlocked = true;
                 }
             }
 
-            if (!southWestBlocked && row - i >= 0 && col - i >= 0) {
-                const sWestSquareId = (BOARD_SIZE - (row - i + 1)) * BOARD_SIZE + (col - i);
-                const sWestSquare = document.getElementById(`${sWestSquareId}`)?.children[0];
-                if (sWestSquare !== null && sWestSquare?.childElementCount === 0) {
-                    validSquares.push(sWestSquareId);
+            if (!sWestBlocked && row - i >= 0 && col - i >= 0) {
+                const sWestPiece = chessPieceBoard[row - i][col - i];
+                if (sWestPiece == null) {
+                    validSquareIds.push(`${row - i},${col - i}`);
                 } else {
-                    southWestBlocked = true;
+                    if (sWestPiece.isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row - i},${col - i}`);
+                    }
+                    sWestBlocked = true;
                 }
             }
 
-            if (!northEastBlocked && row + i < BOARD_SIZE && col + i < BOARD_SIZE) {
-                const nEastSquareId = (BOARD_SIZE - (row + i + 1)) * BOARD_SIZE + (col + i);
-                const nEastSquare = document.getElementById(`${nEastSquareId}`)?.children[0];
-                if (nEastSquare !== null && nEastSquare?.childElementCount === 0) {
-                    validSquares.push(nEastSquareId);
+            if (!nEastBlocked && row + i < BOARD_SIZE && col + i < BOARD_SIZE) {
+                const nEastPiece = chessPieceBoard[row + i][col + i];
+                if (nEastPiece == null) {
+                    validSquareIds.push(`${row + i},${col + i}`);
                 } else {
-                    northEastBlocked = true;
+                    if (nEastPiece.isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row + i},${col + i}`);
+                    }
+                    nEastBlocked = true;
                 }
             }
 
-            if (!southEastBlocked && row - i >= 0 && col + i < BOARD_SIZE) {
-                const sEastSquareId = (BOARD_SIZE - (row - i + 1)) * BOARD_SIZE + (col + i);
-                const sEastSquare = document.getElementById(`${sEastSquareId}`)?.children[0];
-                if (sEastSquare !== null && sEastSquare?.childElementCount === 0) {
-                    validSquares.push(sEastSquareId);
+            if (!sEastBlocked && row - i >= 0 && col + i < BOARD_SIZE) {
+                const sEastPiece = chessPieceBoard[row - i][col + i];
+                if (sEastPiece == null) {
+                    validSquareIds.push(`${row - i},${col + i}`);
                 } else {
-                    southEastBlocked = true;
+                    if (sEastPiece.isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row - i},${col + i}`);
+                    }
+                    sEastBlocked = true;
                 }
             }
         }
 
-        return validSquares;
+        return validSquareIds;
+    }
+
+    const getQueenMoves = (row: number, col: number) => {
+        return getBishopMoves(row, col).concat(getRookMoves(row, col));
     }
 
     const getKingMoves = (row: number, col: number) => {
-        let validSquares: number[] = [];
+        let validSquareIds: string[] = [];
 
-        const left = col - 1;
-        const right = col + 1;
-        const top = BOARD_SIZE - row - 2;
-        const bottom = BOARD_SIZE - row;
-        const lSquare = document.getElementById(`${(BOARD_SIZE - (row + 1)) * BOARD_SIZE + left}`)?.children[0];
-        const rSquare = document.getElementById(`${(BOARD_SIZE - (row + 1)) * BOARD_SIZE + right}`)?.children[0];
-        const tSquare = document.getElementById(`${top * BOARD_SIZE + col}`)?.children[0];
-        const bSquare = document.getElementById(`${bottom * BOARD_SIZE + col}`)?.children[0];
-
-        if (lSquare !== null) {
-            if (lSquare?.childElementCount === 0) {
-                validSquares.push((BOARD_SIZE - (row + 1)) * BOARD_SIZE + left);
-            }
-            if (tSquare !== null) {
-                const topLeftSquare = document.getElementById(`${top * BOARD_SIZE + left}`)
-                    ?.children[0];
-                if (topLeftSquare?.childElementCount === 0) {
-                    validSquares.push(top * BOARD_SIZE + left);
-                }
-            }
-            if (bSquare !== null) {
-                const btmLeftSquare = document.getElementById(`${bottom * BOARD_SIZE + left}`)
-                    ?.children[0];
-                if (btmLeftSquare?.childElementCount === 0) {
-                    validSquares.push(bottom * BOARD_SIZE + left);
+        for (let i = -1; i < 2; i++) {
+            for (let j = -1; j < 2; j++) {
+                if (row + i >= 0 && row + i < BOARD_SIZE && col + j >= 0 && col + j < BOARD_SIZE) {
+                    if (chessPieceBoard[row + i][col + j] == null || chessPieceBoard[row + i][col + j].isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row + i},${col + j}`);
+                    }
                 }
             }
         }
 
-        if (rSquare !== null) {
-            if (rSquare?.childElementCount === 0) {
-                validSquares.push((BOARD_SIZE - (row + 1)) * BOARD_SIZE + right);
-            }
-            if (tSquare !== null) {
-                const topRightSquare = document.getElementById(`${top * BOARD_SIZE + right}`)
-                    ?.children[0];
-                if (topRightSquare?.childElementCount === 0) {
-                    validSquares.push(top * BOARD_SIZE + right);
-                }
-            }
-            if (bSquare !== null) {
-                const btmRightSquare = document.getElementById(`${bottom * BOARD_SIZE + right}`)
-                    ?.children[0];
-                if (btmRightSquare?.childElementCount === 0) {
-                    validSquares.push(bottom * BOARD_SIZE + right);
-                }
-            }
-        }
-
-        if (tSquare !== null && tSquare?.childElementCount === 0) {
-            validSquares.push(top * BOARD_SIZE + col);
-        }
-        if (bSquare !== null && bSquare?.childElementCount === 0) {
-            validSquares.push(bottom * BOARD_SIZE + col);
-        }
-        return validSquares;
+        return validSquareIds;
     }
 
     const getKnightMoves = (row: number, col: number) => {
-        const validSquares: number[] = [];
-
-        const squares = [];
+        const validSquareIds: string[] = [];
 
         if (row - 2 >= 0) {
             if (col - 1 >= 0) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - (row - 1)) * BOARD_SIZE + (col - 1)}`));
+                const piece = chessPieceBoard[row - 2][col - 1];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row - 2},${col - 1}`);
+                }
             }
             if (col + 1 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - (row - 1)) * BOARD_SIZE + (col + 1)}`));
+                const piece = chessPieceBoard[row - 2][col + 1];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row - 2},${col + 1}`);
+                }
             }
         }
 
         if (row - 1 >= 0) {
             if (col - 2 >= 0) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - row) * BOARD_SIZE + (col - 2)}`));
+                const piece = chessPieceBoard[row - 1][col - 2];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row - 1},${col - 2}`);
+                }
             }
             if (col + 2 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - row) * BOARD_SIZE + (col + 2)}`));
+                const piece = chessPieceBoard[row - 1][col + 2];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row - 1},${col + 2}`);
+                }
             }
         }
 
         if (row + 2 < BOARD_SIZE) {
             if (col - 1 >= 0) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - (row + 3)) * BOARD_SIZE + (col - 1)}`));
+                const piece = chessPieceBoard[row + 2][col - 1];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row + 2},${col - 1}`);
+                }
             }
             if (col + 1 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - (row + 3)) * BOARD_SIZE + (col + 1)}`));
+                const piece = chessPieceBoard[row + 2][col + 1];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row + 2},${col + 1}`);
+                }
             }
         }
 
         if (row + 1 < BOARD_SIZE) {
             if (col - 2 >= 0) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - row + 1) * BOARD_SIZE + (col - 2)}`));
+                const piece = chessPieceBoard[row + 1][col - 2];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row + 1},${col - 2}`);
+                }
             }
             if (col + 2 < BOARD_SIZE) {
-                squares.push(document.getElementById(`${(BOARD_SIZE - row + 1) * BOARD_SIZE + (col - 2)}`));
+                const piece = chessPieceBoard[row + 1][col + 2];
+                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                    validSquareIds.push(`${row + 1},${col + 2}`);
+                }
             }
         }
 
-        squares.forEach((square) => {
-            if (square === null) {
-                return;
-            }
-
-            const squareChild = square.children[0];
-
-            if (squareChild.childElementCount !== 0) {
-                return;
-            }
-            validSquares.push(Number.parseInt(square.id));
-        });
-
-        return validSquares;
+        return validSquareIds;
     }
 
     const getPawnMoves = (row: number, col: number, isWhitePawn: boolean) => {
 
         // if the pawn reaches the last row, its no longer a pawn. No need to check if the move goes past the last rank
-        const validSquares: number[] = [];
+        const validSquareIds: string[] = [];
 
         if (isWhitePawn) {
-            const firstSquareId = (BOARD_SIZE - (row + 2)) * BOARD_SIZE + (col);
-            const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
-            if (squareOne?.childElementCount !== 0) {
-                return validSquares;
+            if (row < BOARD_SIZE - 1 && chessPieceBoard[row + 1][col] == null) {
+                validSquareIds.push(`${row + 1},${col}`);
             }
-            validSquares.push(firstSquareId);
+            if (row < BOARD_SIZE - 1 && col > 0 && chessPieceBoard[row + 1][col - 1] != null && chessPieceBoard[row + 1][col - 1].isWhite !== props.isPlayerWhite) {
+                validSquareIds.push(`${row + 1},${col - 1}`);
+            }
+            if (row < BOARD_SIZE - 1 && col < BOARD_SIZE - 1 && chessPieceBoard[row + 1][col + 1] != null && chessPieceBoard[row + 1][col + 1]?.isWhite !== props.isPlayerWhite) {
+                validSquareIds.push(`${row + 1},${col + 1}`);
+            }
             if (row === 1) {
-                let secondSquareId = (BOARD_SIZE - (row + 3)) * BOARD_SIZE + (col);
-                const squareTwo = document.getElementById(`${secondSquareId}`)?.children[0];
-                if (squareTwo?.childElementCount === 0) {
-                    validSquares.push(secondSquareId);
+                if (chessPieceBoard[row + 2][col] == null) {
+                    validSquareIds.push(`${row + 2},${col}`);
                 }
             }
         }
         else {
-            const firstSquareId = (BOARD_SIZE - row) * BOARD_SIZE + (col);
-            const squareOne = document.getElementById(`${firstSquareId}`)?.children[0];
-            if (squareOne?.childElementCount !== 0) {
-                return validSquares;
+            if (row > 0 && chessPieceBoard[row - 1][col] == null) {
+                validSquareIds.push(`${row - 1},${col}`);
             }
-            validSquares.push(firstSquareId);
+            if (row > 0 && col > 0 && chessPieceBoard[row - 1][col - 1] != null && chessPieceBoard[row - 1][col - 1]?.isWhite !== props.isPlayerWhite) {
+                validSquareIds.push(`${row - 1},${col - 1}`);
+            }
+            if (row > 0 && col < BOARD_SIZE - 1 && chessPieceBoard[row - 1][col + 1] != null && chessPieceBoard[row - 1][col + 1]?.isWhite !== props.isPlayerWhite) {
+                validSquareIds.push(`${row - 1},${col + 1}`);
+            }
             if (row === 6) {
-                let secondSquareId = (BOARD_SIZE - row + 1) * BOARD_SIZE + (col);
-                const squareTwo = document.getElementById(`${secondSquareId}`)?.children[0];
-                if (squareTwo?.childElementCount === 0) {
-                    validSquares.push(secondSquareId);
+                if (chessPieceBoard[row - 2][col] == null) {
+                    validSquareIds.push(`${row - 2},${col}`);
                 }
             }
         }
 
-        return validSquares;
+        return validSquareIds;
     }
 
     const getRookMoves = (row: number, col: number) => {
-        const validSquares: number[] = [];
+        const validSquareIds: string[] = [];
 
         let topBlocked = false;
         let btmBlocked = false;
         let leftBlocked = false;
         let rightBlocked = false;
         for (let i = 1; i < BOARD_SIZE; i++) {
-            if (row + i < BOARD_SIZE && !btmBlocked) {
-                const btmSquareId = (BOARD_SIZE - (row + i + 1)) * BOARD_SIZE + col;
-                const btmSquare = document.getElementById(`${btmSquareId}`)?.children[0];
-                if (btmSquare !== null && btmSquare?.childElementCount === 0) {
-                    validSquares.push(btmSquareId);
+            if (row + i < BOARD_SIZE && !topBlocked) {
+                if (chessPieceBoard[row + i][col] == null) {
+                    validSquareIds.push(`${row + i},${col}`);
                 } else {
-                    btmBlocked = true;
-                }
-            }
-
-            if (row - i >= 0 && !topBlocked) {
-                const topSquareId = (BOARD_SIZE - (row - i + 1)) * BOARD_SIZE + col;
-                const topSquare = document.getElementById(`${topSquareId}`)?.children[0];
-                if (topSquare !== null && topSquare?.childElementCount === 0) {
-                    validSquares.push(topSquareId);
-                } else {
+                    if (chessPieceBoard[row + i][col].isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row + i},${col}`);
+                    }
                     topBlocked = true;
                 }
             }
 
-            if (col + i < BOARD_SIZE && !leftBlocked) {
-                const leftSquareId = (BOARD_SIZE - (row + 1)) * BOARD_SIZE + (col + i);
-                const leftSquare = document.getElementById(`${leftSquareId}`)?.children[0];
-                if (leftSquare !== null && leftSquare?.childElementCount === 0) {
-                    validSquares.push(leftSquareId);
+            if (row - i >= 0 && !btmBlocked) {
+                if (chessPieceBoard[row - i][col] == null) {
+                    validSquareIds.push(`${row - i},${col}`);
                 } else {
-                    leftBlocked = true;
+                    if (chessPieceBoard[row - i][col].isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row - i},${col}`);
+                    }
+                    btmBlocked = true;
                 }
             }
 
-            if (col - i >= 0 && !rightBlocked) {
-                const rightSquareId = (BOARD_SIZE - (row + 1)) * BOARD_SIZE + (col - i);
-                const rightSquare = document.getElementById(`${rightSquareId}`)?.children[0];
-                if (rightSquare !== null && rightSquare?.childElementCount === 0) {
-                    validSquares.push(rightSquareId);
+            if (col + i < BOARD_SIZE && !rightBlocked) {
+                if (chessPieceBoard[row][col + i] == null) {
+                    validSquareIds.push(`${row},${col + i}`);
                 } else {
+                    if (chessPieceBoard[row][col + i].isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row},${col + i}`);
+                    }
                     rightBlocked = true;
+                }
+            }
+
+            if (col - i >= 0 && !leftBlocked) {
+                if (chessPieceBoard[row][col - i] == null) {
+                    validSquareIds.push(`${row},${col - i}`);
+                } else {
+                    if (chessPieceBoard[row][col - i].isWhite !== props.isPlayerWhite) {
+                        validSquareIds.push(`${row},${col - i}`);
+                    }
+                    leftBlocked = true;
                 }
             }
         }
 
-        return validSquares;
+        return validSquareIds;
     }
 
     const parseBoard = (boardStr: string) => {
         let board = [];
-        let isWhite = false;
+        let isWhite = true;
         for (let i = 0; i < boardStr.length; i++) {
             if (boardStr.charAt(i) === "|") {
-                isWhite = true;
+                isWhite = false;
                 continue;
             }
 
@@ -597,33 +593,54 @@ const ChessBoard = (props: ChessBoardProps) => {
         return board;
     }
 
-    const { board, pieceBoard } = createChessBoard(props.board);
-    pieceBoard;
-
-    let squareId = 0;
+    let board = createChessBoardSquares(chessPieceBoard);
+    const shouldFlipTable = props.isPlayerWhite;
+    if (shouldFlipTable) {
+        board.reverse();
+    }
     let rowNumber = 0;
     let colNumber = 0;
+
+    let columnLabels = <tr>
+        <td>
+        </td>
+        {board.map(_row => {
+            let td = <td>{String.fromCharCode(colNumber + "a".charCodeAt(0))}</td>
+            colNumber++;
+            return td;
+        })}
+        <td>
+        </td>
+    </tr>;
+
+    colNumber = 0;
+
+    let chessTable = <table>
+        {columnLabels}
+        {board.map(row => {
+            let tr = <tr>
+                <td>{shouldFlipTable ? (BOARD_SIZE - rowNumber) : rowNumber + 1}</td>
+                {row.map(elem => {
+                    let td = <td key={rowNumber * BOARD_SIZE + colNumber} id={`${shouldFlipTable ? BOARD_SIZE - (rowNumber + 1) : rowNumber},${colNumber}`}>{elem}</td>;
+                    colNumber++;
+                    return td;
+                })}
+                <td>{shouldFlipTable ? (BOARD_SIZE - rowNumber) : rowNumber + 1}</td>
+            </tr>;
+            rowNumber++;
+            colNumber = 0;
+            return tr;
+        })}
+        {columnLabels}
+    </table>;
+
+    colNumber = 0;
     return (
         <div
             className="chessboard"
             onMouseMove={(event) =>
                 handleMouseMove(event)}>
-            <table>
-                {board.map(row => {
-                    let tr = <tr>
-                        {row.map(elem => {
-                            let td = <td key={squareId} id={`${squareId}`}
-                                {... { "row": rowNumber, "column": colNumber }}>{elem}</td>;
-                            squareId++;
-                            colNumber++;
-                            return td;
-                        })}
-                    </tr>;
-                    rowNumber++;
-                    return tr;
-                }
-                )}
-            </table>
+            {chessTable}
         </div>
     );
 };
