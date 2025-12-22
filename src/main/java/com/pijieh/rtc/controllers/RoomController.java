@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Slf4j
 @Controller
 public class RoomController {
-
     private static final Gson gson = new Gson();
 
     @Autowired

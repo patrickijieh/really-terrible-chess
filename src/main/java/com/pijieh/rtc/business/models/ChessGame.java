@@ -29,6 +29,8 @@ public class ChessGame {
     @NonNull
     ChessPiece[][] chessboard;
 
+    boolean isWhitesTurn = true;
+
     public ChessGame(@NonNull Player owner, @NonNull String id, ChessPiece[][] startingBoard) {
         playerOne = owner;
         playerTwo = null;

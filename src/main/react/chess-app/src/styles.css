@@ -188,11 +188,11 @@ body {
     padding: 30px;
 }
 
-.player-opponent {
+.portrait-left {
     justify-content: start;
 }
 
-.player-client {
+.portrait-right {
     justify-content: end;
 }
 
@@ -200,6 +200,16 @@ body {
     border: 3px solid grey;
     margin-left: 20px;
     margin-right: 20px;
+}
+
+.turn-indicator {
+   background-color: white;
+   height: 1rem;
+   margin: 1rem;
+}
+
+.hidden-indicator {
+    visibility: hidden;
 }
 
 .no-select {

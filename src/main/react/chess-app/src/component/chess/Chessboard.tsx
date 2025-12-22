@@ -9,7 +9,6 @@ const BOARD_SIZE: number = 8;
 const PIECE_IMG_PIXEL_SIZE: number = 128;
 
 const ChessBoard = (props: ChessBoardProps) => {
-
     const [chessPieceBoard, setChessPieceBoard] = useState<ChessPieceInfo[][]>([]);
     const [validMoves, setValidMoves] = useState<string[]>([]);
     const [draggedClone, setDraggedClone] = useState<HTMLImageElement | null>();
@@ -27,7 +26,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             boardStr = STARTING_WHITE + "|" + STARTING_BLACK;
         }
 
-        let pieces = parseBoard(boardStr);
+        const pieces = parseBoard(boardStr);
 
         const newPieceBoard: ChessPieceInfo[][] = new Array<ChessPieceInfo[]>(BOARD_SIZE);
         for (let i = 0; i < BOARD_SIZE; i++) {
@@ -120,12 +119,18 @@ const ChessBoard = (props: ChessBoardProps) => {
         return colLetter + row;
     }
 
-    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string, isPieceWhite: boolean) => {
+    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string,
+        isPieceWhite: boolean) => {
+
         if (event.button !== 0) {
             return;
         }
 
         if (props.isPlayerWhite !== isPieceWhite) {
+            return;
+        }
+
+        if (props.isWhitesTurn !== props.isPlayerWhite) {
             return;
         }
 
@@ -168,7 +173,8 @@ const ChessBoard = (props: ChessBoardProps) => {
             setDraggedClone(null);
         }
 
-        if (dragRef.current instanceof Node && dragRef.current.firstChild instanceof HTMLImageElement) {
+        if (dragRef.current instanceof Node
+            && dragRef.current.firstChild instanceof HTMLImageElement) {
             dragRef.current.firstChild.hidden = false;
         }
     }
@@ -178,7 +184,8 @@ const ChessBoard = (props: ChessBoardProps) => {
             return;
         }
 
-        if (!(dragRef.current instanceof Node) || !(dragRef.current.firstChild instanceof HTMLImageElement)) {
+        if (!(dragRef.current instanceof Node)
+            || !(dragRef.current.firstChild instanceof HTMLImageElement)) {
             setDropped(false);
             return;
         }
@@ -187,12 +194,15 @@ const ChessBoard = (props: ChessBoardProps) => {
         let draggedPieceColor = dragRef.current.firstChild.getAttribute("piece-color");
 
         let pieceColor: string = "";
+        let draggedPieceIsWhite = false;
         switch (draggedPieceColor) {
             case "BLACK":
                 pieceColor = "b";
+                draggedPieceIsWhite = false;
                 break;
             case "WHITE":
                 pieceColor = "w";
+                draggedPieceIsWhite = true;
                 break;
         }
 
@@ -223,17 +233,17 @@ const ChessBoard = (props: ChessBoardProps) => {
             oldPosition = convertIdToAlgebraicNotation(pos);
         }
 
-        let newSquare = document.getElementById(`${row},${col}`);
         if (pos === `${row},${col}`) {
             setDropped(false);
             return;
         }
 
         let capture = false;
-        if (newSquare?.childElementCount !== 0 && newSquare?.firstChild?.firstChild instanceof HTMLImageElement) {
-            let otherPieceColor = newSquare?.firstChild.firstChild.getAttribute("piece-color");
+        const attackedPiece = chessPieceBoard[row][col];
+        if (attackedPiece != null) {
+            const attackedPieceIsWhite = attackedPiece.isWhite;
             console.log("piece detected");
-            if (otherPieceColor !== draggedPieceColor) {
+            if (attackedPieceIsWhite !== draggedPieceIsWhite) {
                 console.log("different colors");
                 capture = true;
             }
@@ -277,7 +287,7 @@ const ChessBoard = (props: ChessBoardProps) => {
                 break;
         }
         validSquareIds.forEach(idx => {
-            let squareElement = document.getElementById(`${idx}`)?.children[0];
+            let squareElement = document.getElementById(idx)?.children[0];
             let squareClass = squareElement?.className;
             squareElement?.setAttribute("class", squareClass + " valid-move");
         });
@@ -287,7 +297,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     const clearValidMoves = () => {
         for (let i = 0; i < validMoves.length; i++) {
-            const elem = document.getElementById(`${validMoves[i]}`)?.children[0];
+            const elem = document.getElementById(validMoves[i])?.children[0];
             const squareClass = elem?.getAttribute("class");
             if (!squareClass) {
                 continue;
@@ -372,7 +382,8 @@ const ChessBoard = (props: ChessBoardProps) => {
         for (let i = -1; i < 2; i++) {
             for (let j = -1; j < 2; j++) {
                 if (row + i >= 0 && row + i < BOARD_SIZE && col + j >= 0 && col + j < BOARD_SIZE) {
-                    if (chessPieceBoard[row + i][col + j] == null || chessPieceBoard[row + i][col + j].isWhite !== props.isPlayerWhite) {
+                    if (chessPieceBoard[row + i][col + j] == null
+                        || chessPieceBoard[row + i][col + j].isWhite !== props.isPlayerWhite) {
                         validSquareIds.push(`${row + i},${col + j}`);
                     }
                 }
@@ -449,18 +460,19 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const getPawnMoves = (row: number, col: number, isWhitePawn: boolean) => {
-
-        // if the pawn reaches the last row, its no longer a pawn. No need to check if the move goes past the last rank
         const validSquareIds: string[] = [];
 
         if (isWhitePawn) {
             if (row < BOARD_SIZE - 1 && chessPieceBoard[row + 1][col] == null) {
                 validSquareIds.push(`${row + 1},${col}`);
             }
-            if (row < BOARD_SIZE - 1 && col > 0 && chessPieceBoard[row + 1][col - 1] != null && chessPieceBoard[row + 1][col - 1].isWhite !== props.isPlayerWhite) {
+            if (row < BOARD_SIZE - 1 && col > 0 && chessPieceBoard[row + 1][col - 1] != null
+                && chessPieceBoard[row + 1][col - 1].isWhite !== props.isPlayerWhite) {
                 validSquareIds.push(`${row + 1},${col - 1}`);
             }
-            if (row < BOARD_SIZE - 1 && col < BOARD_SIZE - 1 && chessPieceBoard[row + 1][col + 1] != null && chessPieceBoard[row + 1][col + 1]?.isWhite !== props.isPlayerWhite) {
+            if (row < BOARD_SIZE - 1 && col < BOARD_SIZE - 1
+                && chessPieceBoard[row + 1][col + 1] != null
+                && chessPieceBoard[row + 1][col + 1]?.isWhite !== props.isPlayerWhite) {
                 validSquareIds.push(`${row + 1},${col + 1}`);
             }
             if (row === 1) {
@@ -473,10 +485,12 @@ const ChessBoard = (props: ChessBoardProps) => {
             if (row > 0 && chessPieceBoard[row - 1][col] == null) {
                 validSquareIds.push(`${row - 1},${col}`);
             }
-            if (row > 0 && col > 0 && chessPieceBoard[row - 1][col - 1] != null && chessPieceBoard[row - 1][col - 1]?.isWhite !== props.isPlayerWhite) {
+            if (row > 0 && col > 0 && chessPieceBoard[row - 1][col - 1] != null
+                && chessPieceBoard[row - 1][col - 1]?.isWhite !== props.isPlayerWhite) {
                 validSquareIds.push(`${row - 1},${col - 1}`);
             }
-            if (row > 0 && col < BOARD_SIZE - 1 && chessPieceBoard[row - 1][col + 1] != null && chessPieceBoard[row - 1][col + 1]?.isWhite !== props.isPlayerWhite) {
+            if (row > 0 && col < BOARD_SIZE - 1 && chessPieceBoard[row - 1][col + 1] != null
+                && chessPieceBoard[row - 1][col + 1]?.isWhite !== props.isPlayerWhite) {
                 validSquareIds.push(`${row - 1},${col + 1}`);
             }
             if (row === 6) {
@@ -579,11 +593,13 @@ const ChessBoard = (props: ChessBoardProps) => {
             let piece: ChessPieceInfo;
             if (type !== PieceType.PAWN) {
                 let pos = convertStringToPosition(boardStr.substring(i + 1, i + 3));
-                piece = new ChessPieceInfo(type, isWhite, convertPositionToString(pos.row, pos.col));
+                piece = new ChessPieceInfo(type, isWhite,
+                    convertPositionToString(pos.row, pos.col));
                 i += 2;
             } else {
                 let pos = convertStringToPosition(boardStr.substring(i, i + 2));
-                piece = new ChessPieceInfo(type, isWhite, convertPositionToString(pos.row, pos.col));
+                piece = new ChessPieceInfo(type, isWhite,
+                    convertPositionToString(pos.row, pos.col));
                 i++;
             }
 
@@ -593,15 +609,16 @@ const ChessBoard = (props: ChessBoardProps) => {
         return board;
     }
 
-    let board = createChessBoardSquares(chessPieceBoard);
+    const board = createChessBoardSquares(chessPieceBoard);
     const shouldFlipTable = props.isPlayerWhite;
     if (shouldFlipTable) {
         board.reverse();
     }
+
     let rowNumber = 0;
     let colNumber = 0;
 
-    let columnLabels = <tr>
+    const columnLabels = <tr>
         <td>
         </td>
         {board.map(_row => {
@@ -615,7 +632,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     colNumber = 0;
 
-    let chessTable = <table>
+    const chessTable = <table>
         {columnLabels}
         {board.map(row => {
             let tr = <tr>
@@ -634,7 +651,6 @@ const ChessBoard = (props: ChessBoardProps) => {
         {columnLabels}
     </table>;
 
-    colNumber = 0;
     return (
         <div
             className="chessboard"

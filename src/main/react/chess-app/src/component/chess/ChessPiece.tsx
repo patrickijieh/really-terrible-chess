@@ -14,7 +14,6 @@ import whitePawn from "../../img/chess-pieces/white-pawn.png";
 import blackPawn from "../../img/chess-pieces/black-pawn.png";
 
 const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
-
     let imgSrc: string;
 
     switch (type) {

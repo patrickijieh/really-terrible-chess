@@ -11,7 +11,7 @@ const JoinRoom = () => {
 
     const sendRoomJoinRequest = async (): Promise<void> => {
 
-        if (state.username.length < 1 || state.gameId.length < 1) {
+        if (state.username.length < 3 || state.gameId.length < 16) {
             return;
         }
 
@@ -41,45 +41,47 @@ const JoinRoom = () => {
     }
 
     return (
-        <div className="content">
-            <h1>Really Terrible Chess - Join Room</h1>
-            <h3>Join Another Room</h3>
-            <section className="form">
-                <div className="form-body">
-                    <div className="form-item">
-                        <h4 className="form-label">
-                            Your username
-                        </h4>
-                        <input type="text" name="username" id="username" className="form-input"
-                            value={state.username}
-                            onKeyUp={(event) => {
-                                if (event.key === "Enter") { sendRoomJoinRequest() }
-                            }}
-                            onChange={(event) =>
-                                handleFormChange(event)}
-                            placeholder="Enter your name" />
+        <>
+            <div className="content">
+                <h1>Really Terrible Chess - Join Room</h1>
+                <h3>Join Another Room</h3>
+                <section className="form">
+                    <div className="form-body">
+                        <div className="form-item">
+                            <h4 className="form-label">
+                                Your username
+                            </h4>
+                            <input type="text" name="username" id="username" className="form-input"
+                                value={state.username}
+                                onKeyUp={(event) => {
+                                    if (event.key === "Enter") { sendRoomJoinRequest() }
+                                }}
+                                onChange={(event) =>
+                                    handleFormChange(event)}
+                                placeholder="Enter your name" />
+                        </div>
+                        <div className="form-item">
+                            <h4 className="form-label">
+                                Game ID
+                            </h4>
+                            <input type="text" name="gameId" id="gameId" className="form-input"
+                                value={state.gameId}
+                                onKeyUp={(event) => {
+                                    if (event.key === "Enter") { sendRoomJoinRequest() }
+                                }}
+                                onChange={(event) =>
+                                    handleFormChange(event)}
+                                placeholder="Enter the game ID" />
+                        </div>
+                        <button
+                            className="common-button btn"
+                            onClick={(_e) => sendRoomJoinRequest()}>
+                            Join Room!
+                        </button>
                     </div>
-                    <div className="form-item">
-                        <h4 className="form-label">
-                            Game ID
-                        </h4>
-                        <input type="text" name="gameId" id="gameId" className="form-input"
-                            value={state.gameId}
-                            onKeyUp={(event) => {
-                                if (event.key === "Enter") { sendRoomJoinRequest() }
-                            }}
-                            onChange={(event) =>
-                                handleFormChange(event)}
-                            placeholder="Enter the game ID" />
-                    </div>
-                    <button
-                        className="common-button btn"
-                        onClick={(_e) => sendRoomJoinRequest()}>
-                        Join Room!
-                    </button>
-                </div>
-            </section>
-        </div>
+                </section>
+            </div>
+        </>
     );
 };
 

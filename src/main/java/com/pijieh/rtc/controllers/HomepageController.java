@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 public class HomepageController {
-
     @GetMapping("/")
     public String index() {
         return "html/index.html";

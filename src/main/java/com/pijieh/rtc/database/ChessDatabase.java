@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public final class ChessDatabase {
-
     public enum SessionCode {
         SQL_ERROR,
         SESSION_CREATED,

@@ -20,4 +20,6 @@ public class MoveMessage {
 
     @NonNull
     String board;
+
+    boolean isWhitesTurn;
 }

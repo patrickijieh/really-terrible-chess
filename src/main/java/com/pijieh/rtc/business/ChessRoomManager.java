@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 // TODO: Separate player map into different manager
 @Slf4j
 public final class ChessRoomManager {
-
     @Autowired
     ChessDatabase database;
 
@@ -124,7 +123,7 @@ public final class ChessRoomManager {
         ChessGame game = this.chessGames.get(gameId);
 
         if (game == null) {
-            return new Player[0];
+            return new Player[] {};
         }
 
         if (game.getPlayerTwo() == null) {
@@ -157,12 +156,23 @@ public final class ChessRoomManager {
         return (game != null) ? chessEngine.stringifyBoard(game.getChessboard()) : new String();
     }
 
+    public Optional<Boolean> getTurnFromId(String gameId) {
+        ChessGame game = chessGames.get(gameId);
+        if (game == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(game.isWhitesTurn());
+    }
+
     public Optional<String> makeMove(String gameId, ChessMove move) {
         ChessGame game = chessGames.get(gameId);
 
         if (!chessEngine.makeMove(game.getChessboard(), move.getMove())) {
             return Optional.empty();
         }
+
+        game.setWhitesTurn(!game.isWhitesTurn());
 
         return Optional.of(chessEngine.stringifyBoard(game.getChessboard()));
     }

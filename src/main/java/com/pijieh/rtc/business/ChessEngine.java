@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ChessEngine {
-
     ChessPiece[][] defaultBoard;
 
     int boardSize;
@@ -19,8 +18,13 @@ public class ChessEngine {
         defaultBoard = parseBoard(defaultBoardStr);
     }
 
-    public boolean checkIfValidMove(String moveStr, GameState gameState, boolean isPlayerWhite) {
+    public boolean checkIfValidMove(String moveStr, GameState gameState, boolean isPlayerWhite,
+            boolean isWhitesTurn) {
         if (gameState != GameState.NORMAL && gameState != GameState.CHECK) {
+            return false;
+        }
+
+        if (isPlayerWhite != isWhitesTurn) {
             return false;
         }
 
@@ -36,7 +40,8 @@ public class ChessEngine {
             return false;
         }
 
-        if ((moveStr.charAt(0) == 'w' && !isPlayerWhite) || (moveStr.charAt(0) == 'b' && isPlayerWhite)) {
+        if ((moveStr.charAt(0) == 'w' && !isPlayerWhite)
+                || (moveStr.charAt(0) == 'b' && isPlayerWhite)) {
             return false;
         }
 
@@ -70,6 +75,10 @@ public class ChessEngine {
             return false;
         }
 
+        if (newPos.getRow() == oldPos.getRow() && newPos.getCol() == oldPos.getCol()) {
+            return false;
+        }
+
         boolean validMove = validateMove(board, type, pieceIsWhite, isCapture, oldPos.getRow(),
                 oldPos.getCol(), newPos.getRow(), newPos.getCol());
 
@@ -78,8 +87,15 @@ public class ChessEngine {
         }
 
         ChessPiece movingPiece = board[oldPos.getRow()][oldPos.getCol()];
+        ChessPiece potentialPiece = board[newPos.getRow()][newPos.getCol()];
         board[oldPos.getRow()][oldPos.getCol()] = null;
         board[newPos.getRow()][newPos.getCol()] = movingPiece;
+
+        if (potentialPiece != null && isCheckMate(potentialPiece)) {
+            log.info("checkmate!!");
+        }
+
+        debugBoard(board);
 
         return true;
     }
@@ -148,7 +164,8 @@ public class ChessEngine {
         return false;
     }
 
-    private boolean validateBishopMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
+    private boolean validateBishopMove(ChessPiece[][] board, int row, int col, int newRow,
+            int newCol) {
         int rowDistance = Math.abs(row - newRow);
         int colDistance = Math.abs(col - newCol);
 
@@ -185,7 +202,8 @@ public class ChessEngine {
         return true;
     }
 
-    private boolean validateRookMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
+    private boolean validateRookMove(ChessPiece[][] board, int row, int col, int newRow,
+            int newCol) {
         if (row == newRow && col != newCol) {
             boolean directedWest = newCol < col;
             int colDistance = Math.abs(col - newCol);
@@ -223,7 +241,8 @@ public class ChessEngine {
         return false;
     }
 
-    private boolean validateQueenMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
+    private boolean validateQueenMove(ChessPiece[][] board, int row, int col, int newRow,
+            int newCol) {
         if (validateBishopMove(board, row, col, newRow, newCol)
                 || validateRookMove(board, row, col, newRow, newCol)) {
             return true;
@@ -232,7 +251,8 @@ public class ChessEngine {
         return false;
     }
 
-    private boolean validateKingMove(ChessPiece[][] board, int row, int col, int newRow, int newCol) {
+    private boolean validateKingMove(ChessPiece[][] board, int row, int col, int newRow,
+            int newCol) {
         if (Math.abs(row - newRow) <= 1 && Math.abs(col - newCol) <= 1) {
             return true;
         }
@@ -262,6 +282,14 @@ public class ChessEngine {
                 }
             }
         }
+        return false;
+    }
+
+    public boolean isCheckMate(ChessPiece potentialKing) {
+        if (potentialKing.getType() == PieceType.KING) {
+            return true;
+        }
+
         return false;
     }
 

@@ -18,4 +18,6 @@ public class MoveErrorMessage {
 
     @NonNull
     String board;
+
+    boolean isWhitesTurn;
 }

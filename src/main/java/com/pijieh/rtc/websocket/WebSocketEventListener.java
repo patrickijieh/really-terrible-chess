@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class WebSocketEventListener {
-
     @Autowired
     ChessRoomManager chessRoomManager;
 

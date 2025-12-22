@@ -10,6 +10,7 @@ const ChessGame = () => {
     const [wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
     const [boardStr, setBoardStr] = useState("");
     const [isPlayerWhite, setPlayerWhite] = useState(true);
+    const [isWhitesTurn, setWhitesTurn] = useState(true);
     const [gameData, setGameData] = useState({
         player: "You",
         opponent: "Opponent"
@@ -26,21 +27,20 @@ const ChessGame = () => {
         startWebSocketClient();
     }, []);
 
-    const updateGameState = (board: string, opp: string, username: string, isWhite?: boolean) => {
-        if (isWhite !== undefined) {
-            setGameData({
-                ...gameData,
-                player: username,
-                opponent: opp
-            });
+    const updateGameState = (board: string, opp: string, username: string, isWhite?: boolean, isWhitesTurn?: boolean) => {
+        if (isWhite != null) {
             setPlayerWhite(isWhite);
-        } else {
-            setGameData({
-                ...gameData,
-                player: username,
-                opponent: opp
-            });
         }
+
+        if (isWhitesTurn != null) {
+            setWhitesTurn(isWhitesTurn);
+        }
+
+        setGameData({
+            ...gameData,
+            player: username,
+            opponent: opp
+        });
 
         setBoardStr(board);
     }
@@ -62,38 +62,56 @@ const ChessGame = () => {
         wsClient.sendMove(move);
     }
 
-
-    const playerTitle = `${gameData.player} (You)`;
-    return (
-        <div className="content">
-            <SessionID />
-            <PlayerInformation playerName={gameData.opponent ? gameData.opponent : "Opponent"}
-                bottom={false}
-            />
-            <div id="chesstable" className="chesstable">
-                <ChessBoard board={boardStr} sendMove={sendMove} isPlayerWhite={isPlayerWhite} />
-            </div>
-            <PlayerInformation playerName={playerTitle}
-                bottom={true}
-            />
-        </div>
-    );
-};
-
-const SessionID = () => {
-    const getSessionIdString = () => {
+    const getGameIdString = () => {
         const gameId = localStorage.getItem("gameId");
         if (!gameId) {
-            return null;
+            return "";
         }
 
         return gameId;
     }
 
+    const playerTitle = `${gameData.player} (You)`;
     return (
-        getSessionIdString() === null ?
-            (<></>) : (<h3>Session ID: {getSessionIdString()}</h3>)
+        <>
+            <GameHeader gameId={getGameIdString()} />
+            <div className="content">
+                <PlayerInformation playerName={gameData.opponent ? gameData.opponent : "Opponent"}
+                    alignRight={false}
+                    isCurrentTurn={!(isWhitesTurn == isPlayerWhite)}
+                />
+                <div id="chesstable" className="chesstable">
+                    <ChessBoard board={boardStr} sendMove={sendMove} isPlayerWhite={isPlayerWhite} isWhitesTurn={isWhitesTurn} />
+                </div>
+                <PlayerInformation playerName={playerTitle}
+                    alignRight={true}
+                    isCurrentTurn={isWhitesTurn == isPlayerWhite}
+                />
+            </div>
+        </>
     );
-}
+};
+
+const GameHeader = (props: { gameId: string }) => {
+    return (
+        <header className='header'>
+            <div className='header-padding'></div>
+            <div className='header-body'>
+                <div className='header-subsection header-title'>
+                    <h1>really terrible chess</h1>
+                </div>
+                <a className="header-subsection" href="/">
+                    <div className="header-button">
+                        <h2>Home</h2>
+                    </div>
+                </a>
+                <div className="header-subsection header-title">
+                    <h1>game id: {props.gameId}</h1>
+                </div>
+            </div>
+            <div className='header-padding'></div>
+        </header>
+    );
+};
 
 export default ChessGame;
