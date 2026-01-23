@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.pijieh.rtc.business.models.ChessGame;
 import com.pijieh.rtc.business.models.ChessMove;
+import com.pijieh.rtc.business.models.MoveState;
 import com.pijieh.rtc.business.models.Player;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.database.ChessDatabase;
@@ -168,10 +169,12 @@ public final class ChessRoomManager {
     public Optional<String> makeMove(String gameId, ChessMove move) {
         ChessGame game = chessGames.get(gameId);
 
-        if (!chessEngine.makeMove(game.getChessboard(), move.getMove())) {
+        MoveState data = chessEngine.makeMove(game.getChessboard(), move.getMove(), game.getGameState());
+        if (!data.isValidMove()) {
             return Optional.empty();
         }
 
+        game.setGameState(data.getGameState());
         game.setWhitesTurn(!game.isWhitesTurn());
 
         return Optional.of(chessEngine.stringifyBoard(game.getChessboard()));

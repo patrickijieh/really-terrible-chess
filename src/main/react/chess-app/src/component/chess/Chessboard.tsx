@@ -6,7 +6,7 @@ import "../../styles.css";
 const STARTING_WHITE: string = "Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2";
 const STARTING_BLACK: string = "Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7";
 const BOARD_SIZE: number = 8;
-const PIECE_IMG_PIXEL_SIZE: number = 128;
+const PIECE_IMG_PIXEL_SIZE: number = 64;
 
 const ChessBoard = (props: ChessBoardProps) => {
     const [chessPieceBoard, setChessPieceBoard] = useState<ChessPieceInfo[][]>([]);
@@ -34,9 +34,8 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
 
         pieces.map(piece => {
-            let pos = convertStringToPosition(piece.pos);
-            let rowNumber = pos.row;
-            let columnNumber = pos.col;
+            let rowNumber = piece.pos.row;
+            let columnNumber = piece.pos.col;
 
             newPieceBoard[rowNumber][columnNumber] = piece;
         });
@@ -55,11 +54,12 @@ const ChessBoard = (props: ChessBoardProps) => {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 let piece = pieceBoard[row][col];
                 if (piece != null) {
+                    let draggable = props.isWhitesTurn === props.isPlayerWhite && props.isPlayerWhite === piece.isWhite;
                     column.push(<ChessSquare
                         row={row}
                         col={col}
                         isWhiteSquare={(row + col) % 2 == 0}
-                        chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, piece.pos)}
+                        chessPieceProps={new ChessPieceProps(piece.type, piece.isWhite, draggable)}
                         handlePieceMoveStart={handlePieceMoveStart}
                         handlePieceMoveEnd={handlePieceMoveEnd}
                         handleDrop={handleDrop}
@@ -119,7 +119,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         return colLetter + row;
     }
 
-    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, pos: string,
+    const handlePieceMoveStart = (event: MouseEvent, pieceRank: PieceType, row: number, col: number,
         isPieceWhite: boolean) => {
 
         if (event.button !== 0) {
@@ -149,7 +149,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         event.stopPropagation();
         event.preventDefault();
         setDragging(true);
-        showAvailableMoves(pieceRank, pos, isPieceWhite);
+        showAvailableMoves(pieceRank, row, col, isPieceWhite);
     }
 
     const moveClone = (event: MouseEvent, clone?: HTMLImageElement) => {
@@ -186,6 +186,12 @@ const ChessBoard = (props: ChessBoardProps) => {
 
         if (!(dragRef.current instanceof Node)
             || !(dragRef.current.firstChild instanceof HTMLImageElement)) {
+            setDropped(false);
+            return;
+        }
+
+        let pos = dragRef.current.parentElement?.id;
+        if (pos === `${row},${col}`) {
             setDropped(false);
             return;
         }
@@ -227,24 +233,16 @@ const ChessBoard = (props: ChessBoardProps) => {
                 pieceNotation = "";
         }
 
-        let pos = dragRef.current.parentElement?.id;
         let oldPosition: string = "";
         if (pos !== undefined) {
             oldPosition = convertIdToAlgebraicNotation(pos);
-        }
-
-        if (pos === `${row},${col}`) {
-            setDropped(false);
-            return;
         }
 
         let capture = false;
         const attackedPiece = chessPieceBoard[row][col];
         if (attackedPiece != null) {
             const attackedPieceIsWhite = attackedPiece.isWhite;
-            console.log("piece detected");
             if (attackedPieceIsWhite !== draggedPieceIsWhite) {
-                console.log("different colors");
                 capture = true;
             }
         }
@@ -258,13 +256,10 @@ const ChessBoard = (props: ChessBoardProps) => {
         props.sendMove(pieceColor + pieceNotation + oldPosition + ">" + newPosition);
     }
 
-    const showAvailableMoves = (pieceType: PieceType, pos: string, isPieceWhite: boolean) => {
+    const showAvailableMoves = (pieceType: PieceType, row: number, col: number, isPieceWhite: boolean) => {
         if (validMoves !== undefined && validMoves.length > 0) {
             clearValidMoves();
         }
-        let piecePosition = convertStringToPosition(pos);
-        let row: number = piecePosition.row;
-        let col: number = piecePosition.col;
         let validSquareIds: string[] = [];
         switch (pieceType) {
             case PieceType.BISHOP:
@@ -594,12 +589,12 @@ const ChessBoard = (props: ChessBoardProps) => {
             if (type !== PieceType.PAWN) {
                 let pos = convertStringToPosition(boardStr.substring(i + 1, i + 3));
                 piece = new ChessPieceInfo(type, isWhite,
-                    convertPositionToString(pos.row, pos.col));
+                    pos.row, pos.col);
                 i += 2;
             } else {
                 let pos = convertStringToPosition(boardStr.substring(i, i + 2));
                 piece = new ChessPieceInfo(type, isWhite,
-                    convertPositionToString(pos.row, pos.col));
+                    pos.row, pos.col);
                 i++;
             }
 

@@ -18,7 +18,12 @@ const Header = () => {
                     <h1>really terrible chess</h1>
                 </div>
                 <NavButton to='/' displayName='Home' />
-                <NavButton to='/' displayName='Ruleset' />
+                <a className="header-subsection" href="/rules.txt" target='_blank'>
+                    <div className="header-button">
+                        <h2>Ruleset</h2>
+                    </div>
+                </a>
+
             </div>
             <div className='header-padding'></div>
         </header>

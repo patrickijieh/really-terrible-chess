@@ -11,13 +11,16 @@ export default defineConfig({
             js: "js/",
             css: "css/",
         },
+        copy: [
+            { from: './src/txt', to: 'txt' }
+        ],
         cleanDistPath: true,
     },
     source: {
         entry: {
             index: "./src/index.tsx",
             game: "./src/game.tsx"
-        }
+        },
     },
     html: {
         mountId: "body",

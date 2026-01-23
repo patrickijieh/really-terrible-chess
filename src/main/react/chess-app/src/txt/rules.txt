@@ -1,0 +1,4 @@
+really terrible chess - ruleset
+
+The rules for this game are very similar to traditional chess. There are the same six pieces (king, queen, rook, bishop, knight, & pawn), and special moves such as castling are possible.
+The biggest difference between traditional chess and really terrible chess is that the king can be captured, and checkmate is achieved when a player captures the opposing player's king.

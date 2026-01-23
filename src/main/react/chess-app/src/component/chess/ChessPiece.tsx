@@ -13,7 +13,7 @@ import blackKnight from "../../img/chess-pieces/black-knight.png";
 import whitePawn from "../../img/chess-pieces/white-pawn.png";
 import blackPawn from "../../img/chess-pieces/black-pawn.png";
 
-const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
+const ChessPiece = ({ type, isWhite, draggable }: ChessPieceProps) => {
     let imgSrc: string;
 
     switch (type) {
@@ -41,7 +41,10 @@ const ChessPiece = ({ type, isWhite }: ChessPieceProps) => {
             <img src={imgSrc}
                 alt={`${isWhite ? "WHITE" : "BLACK"} ${type}`}
                 draggable={false}
+                style={draggable ? { cursor: "grab" } : { cursor: "default" }}
                 className="no-select"
+                width={64}
+                height={64}
                 {... { "piece-type": type, "piece-color": (isWhite ? "WHITE" : "BLACK") }}
             />
         </>

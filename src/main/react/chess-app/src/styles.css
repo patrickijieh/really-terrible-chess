@@ -12,14 +12,15 @@ body {
         background-color: #020917;
     }
 }
+
 .content {
   display: flex;
   min-height: 100vh;
   line-height: 1.1;
   text-align: center;
   flex-direction: column;
-  margin-top: 4rem;
-  margin-bottom: 4rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .content h1 {
@@ -41,6 +42,7 @@ body {
     color: #ffffff;
     padding: 1rem;
     width: 5rem;
+    cursor: pointer;
 }
 
 .btn {
@@ -68,8 +70,8 @@ body {
 }
 
 .cell {
-    height: 8rem;
-    width: 8rem;
+    height: 64px;
+    width: 64px;
     border: 1.5px solid grey;
     border-style: inset;
     color: black;
@@ -83,6 +85,13 @@ body {
     background-color: #30303C;
     width: 100%;
     height: 5rem;
+}
+
+.game-header {
+    display: flex;
+    background-color: #30303c;
+    width: 100%;
+    height: 3rem;
 }
 
 .header-body {
@@ -185,7 +194,8 @@ body {
 
 .player-info {
     display: flex;
-    padding: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .portrait-left {
@@ -204,8 +214,8 @@ body {
 
 .turn-indicator {
    background-color: white;
-   height: 1rem;
-   margin: 1rem;
+   height: 10px;
+   margin: 5px;
 }
 
 .hidden-indicator {

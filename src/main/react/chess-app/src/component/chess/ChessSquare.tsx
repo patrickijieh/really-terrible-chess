@@ -17,17 +17,15 @@ const ChessSquare = ({ chessPieceProps, handlePieceMoveStart, handlePieceMoveEnd
 
     return (
         <div
+            className={squareClass}
             onMouseDown={(event) =>
-                handlePieceMoveStart!(event, chessPieceProps!.type, chessPieceProps!.pos,
+                handlePieceMoveStart!(event, chessPieceProps!.type, row, col,
                     chessPieceProps!.isWhite)}
             onMouseUp={() => handlePieceMoveEnd!(chessPieceProps!.isWhite)}
             onMouseOver={() => { handleDrop!(row, col) }}
-            className={squareClass}
         >
             <ChessPiece
-                type={chessPieceProps.type}
-                isWhite={chessPieceProps.isWhite}
-                pos={chessPieceProps.pos}
+                {...chessPieceProps}
             />
         </div>
     )

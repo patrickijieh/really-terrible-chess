@@ -1,5 +1,6 @@
 import "../styles.css";
 import { useState, type ChangeEvent } from "react";
+import Header from "./Header";
 
 const JoinRoom = () => {
     document.title = "Really Terrible Chess - Join Room";
@@ -10,10 +11,9 @@ const JoinRoom = () => {
     });
 
     const sendRoomJoinRequest = async (): Promise<void> => {
-
-        if (state.username.length < 3 || state.gameId.length < 16) {
-            return;
-        }
+        //if (state.username.length < 3 || state.gameId.length != 15) {
+        //    return;
+        //}
 
         const response = await fetch("/join-room", {
             method: "POST",
@@ -42,6 +42,7 @@ const JoinRoom = () => {
 
     return (
         <>
+            <Header />
             <div className="content">
                 <h1>Really Terrible Chess - Join Room</h1>
                 <h3>Join Another Room</h3>

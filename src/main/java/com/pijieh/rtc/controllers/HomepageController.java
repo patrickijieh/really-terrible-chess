@@ -12,4 +12,9 @@ public class HomepageController {
     public String index() {
         return "html/index.html";
     }
+
+    @GetMapping("/rules.txt")
+    public String rules() {
+        return "txt/rules.txt";
+    }
 }

@@ -94,19 +94,19 @@ const ChessGame = () => {
 
 const GameHeader = (props: { gameId: string }) => {
     return (
-        <header className='header'>
+        <header className='game-header'>
             <div className='header-padding'></div>
             <div className='header-body'>
                 <div className='header-subsection header-title'>
-                    <h1>really terrible chess</h1>
+                    <p>really terrible chess</p>
                 </div>
                 <a className="header-subsection" href="/">
                     <div className="header-button">
-                        <h2>Home</h2>
+                        <p>Home</p>
                     </div>
                 </a>
                 <div className="header-subsection header-title">
-                    <h1>game id: {props.gameId}</h1>
+                    <p>game id: {props.gameId}</p>
                 </div>
             </div>
             <div className='header-padding'></div>
