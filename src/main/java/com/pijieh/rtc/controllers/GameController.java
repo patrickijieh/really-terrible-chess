@@ -37,7 +37,7 @@ public class GameController {
     }
 
     @MessageMapping("/join/{id}")
-    public void playerConnect(@DestinationVariable(value = "id") String gameId,
+    public void playerConnection(@DestinationVariable(value = "id") String gameId,
             @Payload Player player, StompHeaderAccessor headerAccessor) {
 
         if (!chessRoomManager.playerIsInRoom(gameId, player.getUsername())) {

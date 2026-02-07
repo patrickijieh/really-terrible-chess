@@ -6,6 +6,7 @@ import lombok.Value;
 @Value
 public class ChessPiece {
     public enum PieceType {
+        NONE,
         PAWN,
         KNIGHT,
         BISHOP,

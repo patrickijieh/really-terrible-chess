@@ -14,15 +14,15 @@ Game information can be sent in a json object like so:
 
 Special conditions (check, checkmate) can be sent in the json body as a separate key
 
-{ "board" : "...", "condition" : "check" }
+{ "board" : "...", "gameState" : "check_white" }
 
-If need be, can include who's move it is in the object { "board" : "...", "move" : "b" }
+If need be, can include who's move it is in the object { "board" : "...", "isWhitesTurn" : false }
 
 
 Maybe better approach: Split colors down the middle with some delimiter ('|' maybe), ASSUME first set of pieces are white pieces
 Total length: (16 * 3 (non-pawns)) + (16 * 2 (pawns)) + 1 = 81 characters long
 
-{ "board" : "Ra1Ba5..g2|Ra8Bb8...", "condition" : "" }
+{ "board" : "Ra1Ba5..g2|Ra8Bb8...", ... }
 
 
 Sending move info to the server
@@ -32,3 +32,22 @@ Naive approach (and probably best for this situation): send the move info in alg
 Client-side checks to see if the move is legal (the piece can move to a certain spot), server checks for the side effects of the move and updates both players
 
 For now, client only sends the move they make
+
+----------------------
+
+special cases:
+
+en passant: client will need to state that it is en passant specifically, and state which square they want to move to.
+"bb4>EPa3"
+
+piece promotion: client will need to state that it wants to promote the piece that has reached the back rank, otherwise it will be ineligible for future promotion.
+"bBh2>h1(Q)"
+
+castling: client will state that it wants to do a queenside (O-O-O) or kingside (O-O) castle.
+"wO-O-O"
+
+check: client doesnt need to state check, but can do so.
+"bQh2>h1" OR "bQh2>h1+"
+
+mate: client doesn't need to state mate, but can do so.
+"bQh2>xa2" OR "bQh2>xa2#"

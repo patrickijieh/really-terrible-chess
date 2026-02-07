@@ -40,9 +40,9 @@ public class ChessMoveController {
     public void playerMove(@DestinationVariable(value = "id") String gameId,
             @Payload ChessMove move, StompHeaderAccessor headerAccessor) {
 
-        GameState gameState = chessRoomManager.getGameStateFromId(gameId);
-        Optional<Boolean> isWhitesTurn = chessRoomManager.getTurnFromId(gameId);
-        String whiteUsername = chessRoomManager.getPlayersFromGame(gameId)[0].getUsername();
+        final GameState gameState = chessRoomManager.getGameStateFromId(gameId);
+        final Optional<Boolean> isWhitesTurn = chessRoomManager.getTurnFromId(gameId);
+        final String whiteUsername = chessRoomManager.getPlayersFromGame(gameId)[0].getUsername();
 
         if (isWhitesTurn.isEmpty()) {
             simpMessagingTemplate.convertAndSendToUser(move.getUsername(), "/" + gameId,
@@ -57,7 +57,7 @@ public class ChessMoveController {
             return;
         }
 
-        Optional<String> board = chessRoomManager.makeMove(gameId, move);
+        final Optional<String> board = chessRoomManager.makeMove(gameId, move);
         if (board.isEmpty()) {
             sendMoveErrorMessage(gameId, move.getUsername(),
                     chessRoomManager.getChessboardFromId(gameId), isWhitesTurn.get());

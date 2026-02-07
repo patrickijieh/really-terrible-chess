@@ -47,8 +47,8 @@ public final class ChessRoomManager {
             return Optional.empty();
         }
 
-        Player playerOne = new Player(ownerName);
-        ChessGame newGame = new ChessGame(playerOne, gameId,
+        final Player playerOne = new Player(ownerName);
+        final ChessGame newGame = new ChessGame(playerOne, gameId,
                 chessEngine.getDefaultBoard());
         chessGames.put(gameId, newGame);
         log.info("Created new game with id: {}", newGame.getId());
@@ -60,7 +60,7 @@ public final class ChessRoomManager {
             return Optional.empty();
         }
 
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
         if (game.getPlayerTwo() != null
                 && !game.getPlayerTwo().getUsername().equals(playerName)) {
 
@@ -72,7 +72,7 @@ public final class ChessRoomManager {
     }
 
     public boolean playerIsInRoom(String gameId, String playerName) {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
 
         if (game == null) {
             return false;
@@ -88,7 +88,7 @@ public final class ChessRoomManager {
 
     public void setPlayerSession(String socketSessionId, String playerName, String gameId)
             throws RuntimeException {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
 
         // Should not happen
         if (game == null) {
@@ -109,7 +109,7 @@ public final class ChessRoomManager {
     }
 
     public void removePlayer(String socketSessionId) {
-        Player disconnectedPlayer = players.get(socketSessionId);
+        final Player disconnectedPlayer = players.get(socketSessionId);
 
         if (disconnectedPlayer == null) {
             log.info("No session found with socket id {}", socketSessionId);
@@ -121,7 +121,7 @@ public final class ChessRoomManager {
     }
 
     public Player[] getPlayersFromGame(String gameId) {
-        ChessGame game = this.chessGames.get(gameId);
+        final ChessGame game = this.chessGames.get(gameId);
 
         if (game == null) {
             return new Player[] {};
@@ -135,30 +135,32 @@ public final class ChessRoomManager {
     }
 
     public GameState getGameStateFromId(String gameId) {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
 
         return game.getGameState();
     }
 
     public String startGame(String gameId) {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
 
-        if (game != null) {
-            game.setGameState(GameState.NORMAL);
-            log.info("Game session {} has started", game.getId());
+        if (game == null) {
+            return new String();
         }
+
+        game.setGameState(GameState.NORMAL);
+        log.info("Game session {} has started", game.getId());
 
         return chessEngine.stringifyBoard(game.getChessboard());
     }
 
     public String getChessboardFromId(String gameId) {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
 
-        return (game != null) ? chessEngine.stringifyBoard(game.getChessboard()) : new String();
+        return chessEngine.stringifyBoard(game.getChessboard());
     }
 
     public Optional<Boolean> getTurnFromId(String gameId) {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
         if (game == null) {
             return Optional.empty();
         }
@@ -167,9 +169,9 @@ public final class ChessRoomManager {
     }
 
     public Optional<String> makeMove(String gameId, ChessMove move) {
-        ChessGame game = chessGames.get(gameId);
+        final ChessGame game = chessGames.get(gameId);
 
-        MoveState data = chessEngine.makeMove(game.getChessboard(), move.getMove(), game.getGameState());
+        final MoveState data = chessEngine.makeMove(game.getChessboard(), move.getMove(), game.getGameState());
         if (!data.isValidMove()) {
             return Optional.empty();
         }

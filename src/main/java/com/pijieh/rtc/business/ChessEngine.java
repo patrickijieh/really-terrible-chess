@@ -10,6 +10,21 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ChessEngine {
+    @Value
+    class BoardPosition {
+        int row;
+        int col;
+    };
+
+    enum Castle {
+        NONE,
+        KINGSIDE,
+        QUEENSIDE
+    };
+
+    final static String PROMOTION_REGEX = "\\([N,R,B,Q]\\)";
+    final static int MAX_MOVE_COMMAND_LENGTH = 11;
+
     int boardSize;
     ChessPiece[][] defaultBoard;
 
@@ -20,7 +35,9 @@ public class ChessEngine {
 
     public boolean checkIfValidMove(String moveStr, GameState gameState, boolean isPlayerWhite,
             boolean isWhitesTurn) {
-        if (gameState != GameState.NORMAL && gameState != GameState.CHECK) {
+        if (gameState != GameState.NORMAL && gameState != GameState.CHECK_WHITE
+                && gameState != GameState.CHECK_BLACK
+                && gameState != GameState.CHECK_BOTH) {
             return false;
         }
 
@@ -28,11 +45,7 @@ public class ChessEngine {
             return false;
         }
 
-        if (moveStr.length() < 6 || moveStr.length() > 8) {
-            return false;
-        }
-
-        if (!moveStr.contains(">")) {
+        if (moveStr.length() < 4 || moveStr.length() > MAX_MOVE_COMMAND_LENGTH) {
             return false;
         }
 
@@ -49,13 +62,93 @@ public class ChessEngine {
     }
 
     public MoveState makeMove(ChessPiece[][] board, String moveStr, GameState currentState) {
-        PieceType type = parsePieceType(moveStr);
+        PieceType typ = parsePieceType(moveStr);
+        Castle castleTyp = parseCastle(moveStr);
+        boolean castling = castleTyp != Castle.NONE;
+        PieceType promotionTyp = parsePromotion(moveStr);
         boolean pieceIsWhite = moveStr.charAt(0) == 'w';
+
+        MoveState moveState;
+        if (castling) {
+            moveState = makeCastleMove(board, pieceIsWhite, castleTyp, currentState);
+        } else if (promotionTyp != PieceType.NONE) {
+            moveState = makePromotionMove(board, moveStr, typ, promotionTyp, pieceIsWhite, currentState);
+        } else {
+            moveState = makeRegularMove(board, moveStr, typ, pieceIsWhite, currentState);
+        }
+
+        if (moveState.getGameState() == GameState.FINISHED) {
+            log.info("checkmate!! {} king has been captured", pieceIsWhite ? "black" : "white");
+        } else if (moveState.getGameState() == GameState.CHECK_WHITE
+                || moveState.getGameState() == GameState.CHECK_BLACK
+                || moveState.getGameState() == GameState.CHECK_BOTH) {
+            log.info("game is in check");
+        }
+
+        debugBoard(board);
+        return moveState;
+    }
+
+    public ChessPiece[][] getDefaultBoard() {
+        final ChessPiece[][] newBoard = new ChessPiece[boardSize][boardSize];
+
+        // top of the board
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                ChessPiece piece = defaultBoard[i][j];
+                newBoard[i][j] = new ChessPiece(piece.getType(), piece.isWhite());
+            }
+        }
+
+        // bottom of the board
+        for (int i = boardSize - 2; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                ChessPiece piece = defaultBoard[i][j];
+                newBoard[i][j] = new ChessPiece(piece.getType(), piece.isWhite());
+            }
+        }
+
+        return newBoard;
+    }
+
+    private MoveState makeCastleMove(ChessPiece[][] board, boolean isWhite, Castle castleTyp, GameState currentState) {
+        if (!validateCastle(board, isWhite, castleTyp)) {
+            return new MoveState(false, currentState);
+        }
+
+        if (isWhite) {
+            ChessPiece king = board[0][4];
+            int rookCol = (castleTyp == Castle.KINGSIDE ? boardSize - 1 : 0);
+            ChessPiece rook = board[0][rookCol];
+            int newKingCol = (castleTyp == Castle.KINGSIDE ? 6 : 2);
+            int newRookRelativePos = (castleTyp == Castle.KINGSIDE ? -1 : 1);
+            board[0][4] = null;
+            board[0][rookCol] = null;
+            board[0][newKingCol] = king;
+            board[0][newKingCol + newRookRelativePos] = rook;
+        } else {
+            ChessPiece king = board[boardSize - 1][4];
+            int rookCol = (castleTyp == Castle.KINGSIDE ? boardSize - 1 : 0);
+            ChessPiece rook = board[boardSize - 1][rookCol];
+            int newKingCol = (castleTyp == Castle.KINGSIDE ? 6 : 2);
+            int newRookRelativePos = (castleTyp == Castle.KINGSIDE ? -1 : 1);
+            board[boardSize - 1][4] = null;
+            board[boardSize - 1][rookCol] = null;
+            board[boardSize - 1][newKingCol] = king;
+            board[boardSize - 1][newKingCol + newRookRelativePos] = rook;
+        }
+
+        GameState newState = getGameState(board, null);
+        return new MoveState(true, newState);
+    }
+
+    private MoveState makePromotionMove(ChessPiece[][] board, String moveStr, PieceType typ,
+            PieceType promotionTyp, boolean pieceIsWhite, GameState currentState) {
         boolean isCapture = moveStr.contains("x");
         BoardPosition oldPos;
         BoardPosition newPos;
 
-        if (type == PieceType.PAWN) {
+        if (typ == PieceType.PAWN) {
             oldPos = convertStringToPosition(moveStr.substring(1, 3));
             if (isCapture) {
                 newPos = convertStringToPosition(moveStr.substring(5));
@@ -71,18 +164,56 @@ public class ChessEngine {
             }
         }
 
-        if (newPos == null || oldPos == null) {
+        if (newPos.getRow() == oldPos.getRow() && newPos.getCol() == oldPos.getCol()) {
             return new MoveState(false, currentState);
+        }
+
+        if (!validatePiecePromotion(board, oldPos.getRow(), oldPos.getCol(), newPos.getRow(),
+                newPos.getCol(), pieceIsWhite, promotionTyp)) {
+            return new MoveState(false, currentState);
+        }
+
+        if (!validateMove(board, typ, pieceIsWhite, isCapture, oldPos.getRow(), oldPos.getCol(),
+                newPos.getRow(), newPos.getCol())) {
+            return new MoveState(false, currentState);
+        }
+
+        ChessPiece potentialPiece = board[newPos.getRow()][newPos.getCol()];
+        board[oldPos.getRow()][oldPos.getCol()] = null;
+        board[newPos.getRow()][newPos.getCol()] = new ChessPiece(promotionTyp, pieceIsWhite);
+
+        GameState newState = getGameState(board, potentialPiece);
+        return new MoveState(true, newState);
+    }
+
+    private MoveState makeRegularMove(ChessPiece[][] board, String moveStr, PieceType typ, boolean pieceIsWhite,
+            GameState currentState) {
+        boolean isCapture = moveStr.contains("x");
+        BoardPosition oldPos;
+        BoardPosition newPos;
+
+        if (typ == PieceType.PAWN) {
+            oldPos = convertStringToPosition(moveStr.substring(1, 3));
+            if (isCapture) {
+                newPos = convertStringToPosition(moveStr.substring(5));
+            } else {
+                newPos = convertStringToPosition(moveStr.substring(4));
+            }
+        } else {
+            oldPos = convertStringToPosition(moveStr.substring(2, 4));
+            if (isCapture) {
+                newPos = convertStringToPosition(moveStr.substring(6));
+            } else {
+                newPos = convertStringToPosition(moveStr.substring(5));
+            }
         }
 
         if (newPos.getRow() == oldPos.getRow() && newPos.getCol() == oldPos.getCol()) {
             return new MoveState(false, currentState);
         }
 
-        boolean validMove = validateMove(board, type, pieceIsWhite, isCapture, oldPos.getRow(),
-                oldPos.getCol(), newPos.getRow(), newPos.getCol());
-
-        if (!validMove) {
+        if (!validateMove(board, typ, pieceIsWhite, isCapture, oldPos.getRow(),
+                oldPos.getCol(), newPos.getRow(), newPos.getCol())) {
             return new MoveState(false, currentState);
         }
 
@@ -91,24 +222,30 @@ public class ChessEngine {
         board[oldPos.getRow()][oldPos.getCol()] = null;
         board[newPos.getRow()][newPos.getCol()] = movingPiece;
 
-        GameState newState = GameState.NORMAL;
-
-        if (potentialPiece != null && isCheckMate(potentialPiece)) {
-            newState = GameState.FINISHED;
-            log.info("checkmate!! {} king has been captured", potentialPiece.isWhite() ? "white" : "black");
-        }
-
-        if (gameIsInCheck(board)) {
-            newState = GameState.CHECK;
-            log.info("game is in check");
-        }
-
-        debugBoard(board);
-
+        GameState newState = getGameState(board, potentialPiece);
         return new MoveState(true, newState);
     }
 
-    public PieceType parsePieceType(String moveStr) {
+    private Castle parseCastle(String moveStr) {
+        if (moveStr.equals("wO-O") || moveStr.equals("bO-O")) {
+            return Castle.KINGSIDE;
+        } else if (moveStr.equals("wO-O-O") || moveStr.equals("bO-O-O")) {
+            return Castle.QUEENSIDE;
+        }
+
+        return Castle.NONE;
+    }
+
+    private PieceType parsePromotion(String moveStr) {
+        String promotingStr = moveStr.substring(moveStr.length() - 3);
+        if (!promotingStr.matches(PROMOTION_REGEX)) {
+            return PieceType.NONE;
+        }
+
+        return parsePieceType(promotingStr);
+    }
+
+    private PieceType parsePieceType(String moveStr) {
         char pieceNotation = moveStr.charAt(1);
         PieceType type = switch (pieceNotation) {
             case 'B' -> PieceType.BISHOP;
@@ -122,7 +259,7 @@ public class ChessEngine {
         return type;
     }
 
-    public boolean validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite,
+    private boolean validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite,
             boolean isCapture, int row, int col, int newRow, int newCol) {
         assert row < 8 && row >= 0;
         assert col < 8 && col >= 0;
@@ -136,13 +273,11 @@ public class ChessEngine {
             return false;
         }
 
-        if (potentialPiece != null) {
-            if (!(potentialPiece.isWhite() ^ pieceIsWhite)) {
-                return false;
-            }
+        if (potentialPiece != null && potentialPiece.isWhite() == pieceIsWhite) {
+            return false;
         }
 
-        boolean validMove = switch (piece.getType()) {
+        return switch (piece.getType()) {
             case KNIGHT -> validateKnightMove(row, col, newRow, newCol);
             case BISHOP -> validateBishopMove(board, row, col, newRow, newCol);
             case ROOK -> validateRookMove(board, row, col, newRow, newCol);
@@ -150,12 +285,6 @@ public class ChessEngine {
             case KING -> validateKingMove(board, row, col, newRow, newCol);
             default -> validatePawnMove(board, row, col, newRow, newCol, pieceIsWhite, isCapture);
         };
-
-        if (!validMove) {
-            return false;
-        }
-
-        return true;
     }
 
     private boolean validateKnightMove(int row, int col, int newRow, int newCol) {
@@ -283,11 +412,63 @@ public class ChessEngine {
         return false;
     }
 
-    public boolean isCheckMate(ChessPiece potentialKing) {
-        return potentialKing.getType() == PieceType.KING;
+    private boolean validatePiecePromotion(ChessPiece[][] board, int row, int col, int newRow,
+            int newCol, boolean pieceIsWhite, PieceType newTyp) {
+        assert row < 8 && row >= 0;
+        assert col < 8 && col >= 0;
+        assert newRow < 8 && newRow >= 0;
+        assert newCol < 8 && newCol >= 0;
+        if ((pieceIsWhite && newRow != boardSize - 1) || (!pieceIsWhite && newRow != 0)) {
+            return false;
+        }
+
+        PieceType typ = board[row][col].getType();
+        if (typ == PieceType.KING || typ == PieceType.QUEEN) {
+            return false;
+        }
+
+        if (newTyp.compareTo(typ) < 0) {
+            return false;
+        }
+
+        return true;
     }
 
-    public boolean gameIsInCheck(ChessPiece[][] board) {
+    private boolean validateCastle(ChessPiece[][] board, boolean isWhite, Castle castleTyp) {
+        if (isWhite) {
+            ChessPiece wKing = board[0][4];
+            int rookCol = (castleTyp == Castle.KINGSIDE ? boardSize - 1 : 0);
+            ChessPiece rook = board[0][rookCol];
+            int newKingCol = (castleTyp == Castle.KINGSIDE ? 6 : 2);
+            int newRookRelativePos = (castleTyp == Castle.KINGSIDE ? -1 : 1);
+            if (wKing == null || wKing.getType() != PieceType.KING || rook == null
+                    || rook.getType() != PieceType.ROOK) {
+                return false;
+            }
+            // treat king as a rook (cause why not)
+            return validateRookMove(board, 0, 4, 0, newKingCol)
+                    && validateRookMove(board, 0, rookCol, 0, newKingCol + newRookRelativePos);
+        } else {
+            ChessPiece bKing = board[boardSize - 1][4];
+            int rookCol = (castleTyp == Castle.KINGSIDE ? boardSize - 1 : 0);
+            ChessPiece rook = board[boardSize - 1][rookCol];
+            int newKingCol = (castleTyp == Castle.KINGSIDE ? 6 : 2);
+            int newRookRelativePos = (castleTyp == Castle.KINGSIDE ? -1 : 1);
+            if (bKing == null || bKing.getType() != PieceType.KING || rook == null
+                    || rook.getType() != PieceType.ROOK) {
+                return false;
+            }
+
+            return validateRookMove(board, boardSize - 1, 4, boardSize - 1, newKingCol)
+                    && validateRookMove(board, boardSize - 1, rookCol, boardSize - 1, newKingCol + newRookRelativePos);
+        }
+    }
+
+    private GameState getGameState(ChessPiece[][] board, ChessPiece removedPiece) {
+        if (removedPiece != null && removedPiece.getType() == PieceType.KING) {
+            return GameState.FINISHED;
+        }
+
         BoardPosition whiteKing = null;
         BoardPosition blackKing = null;
         for (int row = 0; row < boardSize; row++) {
@@ -302,20 +483,22 @@ public class ChessEngine {
             }
         }
 
-        if (kingCanBeTaken(board, whiteKing, true)) {
-            return true;
+        final boolean whiteCanBeTaken = kingCanBeTaken(board, whiteKing, true);
+        final boolean blackCanBeTaken = kingCanBeTaken(board, blackKing, false);
+        if (whiteCanBeTaken && blackCanBeTaken) {
+            return GameState.CHECK_BOTH;
+        } else if (whiteCanBeTaken) {
+            return GameState.CHECK_WHITE;
+        } else if (blackCanBeTaken) {
+            return GameState.CHECK_BLACK;
         }
 
-        if (kingCanBeTaken(board, blackKing, false)) {
-            return true;
-        }
-
-        return false;
+        return GameState.NORMAL;
     }
 
     private boolean kingCanBeTaken(ChessPiece[][] board, BoardPosition kingPos, boolean kingIsWhite) {
-        int kingRow = kingPos.getRow();
-        int kingCol = kingPos.getCol();
+        final int kingRow = kingPos.getRow();
+        final int kingCol = kingPos.getCol();
         boolean north = true;
         boolean south = true;
         boolean east = true;
@@ -494,7 +677,7 @@ public class ChessEngine {
         return false;
     }
 
-    boolean validateCardinalMovesCanCapture(ChessPiece[][] board, int row, int col, int kingRow, int kingCol) {
+    private boolean validateCardinalMovesCanCapture(ChessPiece[][] board, int row, int col, int kingRow, int kingCol) {
         return switch (board[row][col].getType()) {
             case ROOK -> validateRookMove(board, row, col, kingRow, kingCol);
             case QUEEN -> validateQueenMove(board, row, col, kingRow, kingCol);
@@ -503,7 +686,7 @@ public class ChessEngine {
         };
     }
 
-    boolean validateDiagonalMovesCanCapture(ChessPiece[][] board, int row, int col, int kingRow, int kingCol) {
+    private boolean validateDiagonalMovesCanCapture(ChessPiece[][] board, int row, int col, int kingRow, int kingCol) {
         return switch (board[row][col].getType()) {
             case PAWN -> validatePawnMove(board, row, col, kingRow, kingCol, board[row][col].isWhite(), true);
             case BISHOP -> validateBishopMove(board, row, col, kingRow, kingCol);
@@ -513,30 +696,8 @@ public class ChessEngine {
         };
     }
 
-    public ChessPiece[][] getDefaultBoard() {
-        ChessPiece[][] newBoard = new ChessPiece[boardSize][boardSize];
-
-        // top of the board
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                ChessPiece piece = defaultBoard[i][j];
-                newBoard[i][j] = new ChessPiece(piece.getType(), piece.isWhite());
-            }
-        }
-
-        // bottom of the board
-        for (int i = boardSize - 2; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                ChessPiece piece = defaultBoard[i][j];
-                newBoard[i][j] = new ChessPiece(piece.getType(), piece.isWhite());
-            }
-        }
-
-        return newBoard;
-    }
-
     private ChessPiece[][] parseBoard(String boardStr) {
-        ChessPiece[][] board = new ChessPiece[boardSize][boardSize];
+        final ChessPiece[][] board = new ChessPiece[boardSize][boardSize];
 
         boolean isWhite = false;
         for (int i = 0; i < boardStr.length(); i++) {
@@ -574,12 +735,7 @@ public class ChessEngine {
             return null;
         }
 
-        int row;
-        try {
-            row = Integer.parseInt(pos.substring(1, 2)) - 1;
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        int row = Integer.parseInt(pos.substring(1, 2)) - 1;
         int col = pos.charAt(0) - 'a';
 
         return new BoardPosition(row, col);
@@ -639,10 +795,4 @@ public class ChessEngine {
             sb.setLength(0);
         }
     }
-}
-
-@Value
-class BoardPosition {
-    int row;
-    int col;
 }

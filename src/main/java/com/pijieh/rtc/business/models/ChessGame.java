@@ -11,7 +11,9 @@ public class ChessGame {
         NOT_READY,
         READY,
         NORMAL,
-        CHECK,
+        CHECK_WHITE,
+        CHECK_BLACK,
+        CHECK_BOTH,
         FINISHED
     };
 
