@@ -1,21 +1,15 @@
 package com.pijieh.rtc.business;
 
 import com.pijieh.rtc.business.models.ChessPiece;
+import com.pijieh.rtc.business.models.BoardPosition;
 import com.pijieh.rtc.business.models.MoveState;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.business.models.ChessPiece.PieceType;
 
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ChessEngine {
-    @Value
-    class BoardPosition {
-        int row;
-        int col;
-    };
-
     enum Castle {
         NONE,
         KINGSIDE,
@@ -25,12 +19,12 @@ public class ChessEngine {
     final static String PROMOTION_REGEX = "\\([N,R,B,Q]\\)";
     final static int MAX_MOVE_COMMAND_LENGTH = 11;
 
-    int boardSize;
-    ChessPiece[][] defaultBoard;
+    private int boardSize;
+    private ChessPiece[][] defaultBoard;
 
     public ChessEngine(String defaultBoardStr, int boardSize) {
         this.boardSize = boardSize;
-        defaultBoard = parseBoard(defaultBoardStr);
+        this.defaultBoard = parseBoard(defaultBoardStr);
     }
 
     public boolean checkIfValidMove(String moveStr, GameState gameState, boolean isPlayerWhite,
@@ -61,20 +55,28 @@ public class ChessEngine {
         return true;
     }
 
-    public MoveState makeMove(ChessPiece[][] board, String moveStr, GameState currentState) {
+    public MoveState makeMove(ChessPiece[][] board, String moveStr, GameState currentState,
+            BoardPosition ghostPiecePosition) {
         PieceType typ = parsePieceType(moveStr);
         Castle castleTyp = parseCastle(moveStr);
-        boolean castling = castleTyp != Castle.NONE;
         PieceType promotionTyp = parsePromotion(moveStr);
         boolean pieceIsWhite = moveStr.charAt(0) == 'w';
+        boolean isEnPassant = moveStr.contains("EP");
 
         MoveState moveState;
-        if (castling) {
+        if (castleTyp != Castle.NONE) {
             moveState = makeCastleMove(board, pieceIsWhite, castleTyp, currentState);
         } else if (promotionTyp != PieceType.NONE) {
             moveState = makePromotionMove(board, moveStr, typ, promotionTyp, pieceIsWhite, currentState);
+        } else if (isEnPassant) {
+            moveState = makeEnPassantMove(board, moveStr, typ, pieceIsWhite, currentState);
         } else {
             moveState = makeRegularMove(board, moveStr, typ, pieceIsWhite, currentState);
+        }
+
+        if (ghostPiecePosition != null
+                && board[ghostPiecePosition.getRow()][ghostPiecePosition.getCol()].getType() == PieceType.GHOST_PAWN) {
+            board[ghostPiecePosition.getRow()][ghostPiecePosition.getCol()] = null;
         }
 
         if (moveState.getGameState() == GameState.FINISHED) {
@@ -111,9 +113,76 @@ public class ChessEngine {
         return newBoard;
     }
 
+    public String stringifyBoard(ChessPiece[][] board) {
+        StringBuilder blackPieces = new StringBuilder();
+        StringBuilder whitePieces = new StringBuilder();
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                ChessPiece piece = board[i][j];
+                if (piece == null) {
+                    continue;
+                }
+                if (piece.isWhite()) {
+                    if (piece.getType() == PieceType.PAWN) {
+                        whitePieces.append(convertPositionToString(i, j));
+                    } else {
+                        whitePieces.append(piece.toString()
+                                + convertPositionToString(i, j));
+                    }
+                } else {
+                    if (piece.getType() == PieceType.PAWN) {
+                        blackPieces.append(convertPositionToString(i, j));
+                    } else {
+                        blackPieces.append(piece.toString()
+                                + convertPositionToString(i, j));
+                    }
+
+                }
+            }
+        }
+
+        return whitePieces.toString() + "|" + blackPieces.toString();
+    }
+
+    private MoveState makeEnPassantMove(ChessPiece[][] board, String moveStr, PieceType typ, boolean isWhite,
+            GameState currentState) {
+        if (typ != PieceType.PAWN) {
+            return new MoveState(false, currentState, null);
+        }
+
+        BoardPosition oldPos = convertStringToPosition(moveStr.substring(1, 3));
+        BoardPosition newPos = convertStringToPosition(moveStr.substring(6));
+
+        if (newPos.getRow() == oldPos.getRow() && newPos.getCol() == oldPos.getCol()) {
+            return new MoveState(false, currentState, null);
+        }
+
+        if (!validatePawnMove(board, oldPos.getRow(), oldPos.getCol(), newPos.getRow(), newPos.getCol(), isWhite,
+                true)) {
+            return new MoveState(false, currentState, null);
+        }
+
+        int captureRowOffset;
+        if (oldPos.getRow() > newPos.getRow()) {
+            captureRowOffset = 1;
+        } else {
+            captureRowOffset = -1;
+        }
+
+        ChessPiece movingPiece = board[oldPos.getRow()][oldPos.getCol()];
+        ChessPiece potentialPiece = board[newPos.getRow() + captureRowOffset][newPos.getCol()];
+
+        board[newPos.getRow() + captureRowOffset][newPos.getCol()] = null;
+        board[newPos.getRow()][newPos.getCol()] = movingPiece;
+        board[oldPos.getRow()][oldPos.getCol()] = null;
+
+        GameState newState = getGameState(board, potentialPiece);
+        return new MoveState(true, newState, null);
+    }
+
     private MoveState makeCastleMove(ChessPiece[][] board, boolean isWhite, Castle castleTyp, GameState currentState) {
         if (!validateCastle(board, isWhite, castleTyp)) {
-            return new MoveState(false, currentState);
+            return new MoveState(false, currentState, null);
         }
 
         if (isWhite) {
@@ -139,7 +208,7 @@ public class ChessEngine {
         }
 
         GameState newState = getGameState(board, null);
-        return new MoveState(true, newState);
+        return new MoveState(true, newState, null);
     }
 
     private MoveState makePromotionMove(ChessPiece[][] board, String moveStr, PieceType typ,
@@ -165,17 +234,17 @@ public class ChessEngine {
         }
 
         if (newPos.getRow() == oldPos.getRow() && newPos.getCol() == oldPos.getCol()) {
-            return new MoveState(false, currentState);
+            return new MoveState(false, currentState, null);
         }
 
         if (!validatePiecePromotion(board, oldPos.getRow(), oldPos.getCol(), newPos.getRow(),
                 newPos.getCol(), pieceIsWhite, promotionTyp)) {
-            return new MoveState(false, currentState);
+            return new MoveState(false, currentState, null);
         }
 
         if (!validateMove(board, typ, pieceIsWhite, isCapture, oldPos.getRow(), oldPos.getCol(),
                 newPos.getRow(), newPos.getCol())) {
-            return new MoveState(false, currentState);
+            return new MoveState(false, currentState, null);
         }
 
         ChessPiece potentialPiece = board[newPos.getRow()][newPos.getCol()];
@@ -183,7 +252,7 @@ public class ChessEngine {
         board[newPos.getRow()][newPos.getCol()] = new ChessPiece(promotionTyp, pieceIsWhite);
 
         GameState newState = getGameState(board, potentialPiece);
-        return new MoveState(true, newState);
+        return new MoveState(true, newState, null);
     }
 
     private MoveState makeRegularMove(ChessPiece[][] board, String moveStr, PieceType typ, boolean pieceIsWhite,
@@ -209,21 +278,33 @@ public class ChessEngine {
         }
 
         if (newPos.getRow() == oldPos.getRow() && newPos.getCol() == oldPos.getCol()) {
-            return new MoveState(false, currentState);
+            return new MoveState(false, currentState, null);
         }
 
         if (!validateMove(board, typ, pieceIsWhite, isCapture, oldPos.getRow(),
                 oldPos.getCol(), newPos.getRow(), newPos.getCol())) {
-            return new MoveState(false, currentState);
+            return new MoveState(false, currentState, null);
         }
 
         ChessPiece movingPiece = board[oldPos.getRow()][oldPos.getCol()];
         ChessPiece potentialPiece = board[newPos.getRow()][newPos.getCol()];
+
+        BoardPosition newGhostPos = null;
+        if (typ == PieceType.PAWN && Math.abs(oldPos.getRow() - newPos.getRow()) == 2) { // for en passant
+            ChessPiece ghostPawn = new ChessPiece(PieceType.GHOST_PAWN, pieceIsWhite);
+            if (oldPos.getRow() > newPos.getRow()) {
+                board[oldPos.getRow() - 1][oldPos.getCol()] = ghostPawn;
+                newGhostPos = new BoardPosition(oldPos.getRow() - 1, oldPos.getCol());
+            } else {
+                board[oldPos.getRow() + 1][oldPos.getCol()] = ghostPawn;
+                newGhostPos = new BoardPosition(oldPos.getRow() + 1, oldPos.getCol());
+            }
+        }
         board[oldPos.getRow()][oldPos.getCol()] = null;
         board[newPos.getRow()][newPos.getCol()] = movingPiece;
 
         GameState newState = getGameState(board, potentialPiece);
-        return new MoveState(true, newState);
+        return new MoveState(true, newState, newGhostPos);
     }
 
     private Castle parseCastle(String moveStr) {
@@ -315,21 +396,21 @@ public class ChessEngine {
         for (int i = 1; i < rowDistance; i++) {
             if (directedNorth) {
                 if (directedWest) {
-                    if (board[row + i][col - i] != null) {
+                    if (board[row + i][col - i] != null && board[row + i][col - i].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row + i][col + i] != null) {
+                    if (board[row + i][col + i] != null && board[row + i][col + i].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
             } else {
                 if (directedWest) {
-                    if (board[row - i][col - i] != null) {
+                    if (board[row - i][col - i] != null && board[row - i][col - i].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row - i][col + i] != null) {
+                    if (board[row - i][col + i] != null && board[row - i][col + i].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
@@ -346,11 +427,11 @@ public class ChessEngine {
             int colDistance = Math.abs(col - newCol);
             for (int i = 1; i < colDistance; i++) {
                 if (directedWest) {
-                    if (board[row][col - i] != null) {
+                    if (board[row][col - i] != null && board[row][col - i].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row][col + i] != null) {
+                    if (board[row][col + i] != null && board[row][col + i].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
@@ -361,11 +442,11 @@ public class ChessEngine {
             int rowDistance = Math.abs(row - newRow);
             for (int i = 1; i < rowDistance; i++) {
                 if (directedNorth) {
-                    if (board[row + i][col] != null) {
+                    if (board[row + i][col] != null && board[row + i][col].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row - i][col] != null) {
+                    if (board[row - i][col] != null && board[row - i][col].getType() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
@@ -735,50 +816,19 @@ public class ChessEngine {
             return null;
         }
 
-        int row = Integer.parseInt(pos.substring(1, 2)) - 1;
-        int col = pos.charAt(0) - 'a';
+        final int row = Integer.parseInt(pos.substring(1, 2)) - 1;
+        final int col = pos.charAt(0) - 'a';
 
         return new BoardPosition(row, col);
     }
 
     private String convertPositionToString(int row, int col) {
-        char column = (char) ('a' + col);
+        final char column = (char) ('a' + col);
         return column + "" + (row + 1);
     }
 
-    public String stringifyBoard(ChessPiece[][] board) {
-        StringBuilder blackPieces = new StringBuilder();
-        StringBuilder whitePieces = new StringBuilder();
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                ChessPiece piece = board[i][j];
-                if (piece == null) {
-                    continue;
-                }
-                if (piece.isWhite()) {
-                    if (piece.getType() == PieceType.PAWN) {
-                        whitePieces.append(convertPositionToString(i, j));
-                    } else {
-                        whitePieces.append(piece.toString()
-                                + convertPositionToString(i, j));
-                    }
-                } else {
-                    if (piece.getType() == PieceType.PAWN) {
-                        blackPieces.append(convertPositionToString(i, j));
-                    } else {
-                        blackPieces.append(piece.toString()
-                                + convertPositionToString(i, j));
-                    }
-
-                }
-            }
-        }
-
-        return whitePieces.toString() + "|" + blackPieces.toString();
-    }
-
     private void debugBoard(ChessPiece[][] board) {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         for (ChessPiece[] row : board) {
             for (ChessPiece piece : row) {
                 if (piece == null) {

@@ -38,7 +38,7 @@ For now, client only sends the move they make
 special cases:
 
 en passant: client will need to state that it is en passant specifically, and state which square they want to move to.
-"bb4>EPa3"
+"bb4>xEPa3"
 
 piece promotion: client will need to state that it wants to promote the piece that has reached the back rank, otherwise it will be ineligible for future promotion.
 "bBh2>h1(Q)"

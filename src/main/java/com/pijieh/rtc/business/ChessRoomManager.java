@@ -33,15 +33,17 @@ public final class ChessRoomManager {
     public ChessRoomManager(int maxNumberOfChessGames) {
         this.maxGames = maxNumberOfChessGames;
         this.maxPlayers = maxNumberOfChessGames * 2;
-        ConcurrentHashMap<String, ChessGame> games = new ConcurrentHashMap<>(maxGames);
-        ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>(maxPlayers);
-        this.chessGames = games;
-        this.players = players;
+        this.chessGames = new ConcurrentHashMap<String, ChessGame>(maxGames);
+        this.players = new ConcurrentHashMap<String, Player>(maxPlayers);
     }
 
     public Optional<String> createRoom(String ownerName) {
         final String gameId = Long.toHexString(UUID.randomUUID().getMostSignificantBits())
                 .toUpperCase();
+
+        if (chessGames.size() >= maxGames) {
+            return Optional.empty();
+        }
 
         if (database.createSession(gameId, ownerName) != SessionCode.SESSION_CREATED) {
             return Optional.empty();
@@ -171,13 +173,15 @@ public final class ChessRoomManager {
     public Optional<String> makeMove(String gameId, ChessMove move) {
         final ChessGame game = chessGames.get(gameId);
 
-        final MoveState data = chessEngine.makeMove(game.getChessboard(), move.getMove(), game.getGameState());
+        final MoveState data = chessEngine.makeMove(game.getChessboard(), move.getMove(), game.getGameState(),
+                game.getGhostPiecePosition());
         if (!data.isValidMove()) {
             return Optional.empty();
         }
 
         game.setGameState(data.getGameState());
         game.setWhitesTurn(!game.isWhitesTurn());
+        game.setGhostPiecePosition(data.getGhostPiecePosition());
 
         return Optional.of(chessEngine.stringifyBoard(game.getChessboard()));
     }

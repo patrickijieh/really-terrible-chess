@@ -77,6 +77,7 @@ class ChessSquareProps {
 }
 
 enum PieceType {
+    GHOST_PAWN = "EP",
     PAWN = "PAWN",
     KNIGHT = "KNIGHT",
     BISHOP = "BISHOP",

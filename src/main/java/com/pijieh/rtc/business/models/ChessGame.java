@@ -31,14 +31,17 @@ public class ChessGame {
     @NonNull
     ChessPiece[][] chessboard;
 
+    BoardPosition ghostPiecePosition;
+
     boolean isWhitesTurn = true;
 
     public ChessGame(@NonNull Player owner, @NonNull String id, ChessPiece[][] startingBoard) {
-        playerOne = owner;
-        playerTwo = null;
+        this.playerOne = owner;
+        this.playerTwo = null;
         this.id = id;
 
-        chessboard = startingBoard;
+        this.chessboard = startingBoard;
+        this.ghostPiecePosition = null;
     }
 
     public boolean isReady() {

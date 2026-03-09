@@ -1,4 +1,4 @@
-package com.pijieh.rtc.business.models;
+package com.pijieh.rtc.business.models.forms;
 
 import lombok.NonNull;
 import lombok.Value;

@@ -7,6 +7,7 @@ import lombok.Value;
 public class ChessPiece {
     public enum PieceType {
         NONE,
+        GHOST_PAWN,
         PAWN,
         KNIGHT,
         BISHOP,
@@ -34,6 +35,7 @@ public class ChessPiece {
             case QUEEN -> "Q";
             case KING -> "K";
             case PAWN -> "P";
+            case GHOST_PAWN -> "EP";
             default -> new String();
         };
 

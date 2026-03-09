@@ -10,4 +10,6 @@ public class MoveState {
 
     @NonNull
     GameState gameState;
+
+    BoardPosition ghostPiecePosition;
 }

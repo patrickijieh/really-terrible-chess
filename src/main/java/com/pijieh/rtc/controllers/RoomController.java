@@ -12,8 +12,8 @@ import org.springframework.stereotype.Controller;
 
 import com.google.gson.Gson;
 import com.pijieh.rtc.business.ChessRoomManager;
-import com.pijieh.rtc.business.models.CreateRoomForm;
-import com.pijieh.rtc.business.models.JoinRoomForm;
+import com.pijieh.rtc.business.models.forms.CreateRoomForm;
+import com.pijieh.rtc.business.models.forms.JoinRoomForm;
 
 import lombok.extern.slf4j.Slf4j;
 

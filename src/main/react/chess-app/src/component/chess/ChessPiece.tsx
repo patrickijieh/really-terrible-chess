@@ -35,11 +35,15 @@ const ChessPiece = ({ type, isWhite, draggable }: ChessPieceProps) => {
         case PieceType.PAWN:
             imgSrc = isWhite ? whitePawn : blackPawn;
             break;
+        case PieceType.GHOST_PAWN:
+            imgSrc = "";
+            draggable = false;
+            break;
     }
     return (
         <>
             <img src={imgSrc}
-                alt={`${isWhite ? "WHITE" : "BLACK"} ${type}`}
+                alt={`${type != PieceType.GHOST_PAWN ? ((isWhite ? "WHITE " : "BLACK ") + type) : ""}`}
                 draggable={false}
                 style={draggable ? { cursor: "grab" } : { cursor: "default" }}
                 className="no-select"

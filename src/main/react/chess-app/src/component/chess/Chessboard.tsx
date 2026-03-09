@@ -239,18 +239,26 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
 
         let capture = false;
+        let enPassant = false;
         const attackedPiece = chessPieceBoard[row][col];
         if (attackedPiece != null) {
             const attackedPieceIsWhite = attackedPiece.isWhite;
             if (attackedPieceIsWhite !== draggedPieceIsWhite) {
                 capture = true;
+                if (attackedPiece.type === PieceType.GHOST_PAWN) {
+                    enPassant = true;
+                }
             }
         }
 
         setDropped(false);
         let newPosition = convertPositionToString(row, col);
         if (capture) {
-            newPosition = "x" + newPosition;
+            if (enPassant) {
+                newPosition = "EP" + newPosition;
+            } else {
+                newPosition = "x" + newPosition;
+            }
         }
         clearValidMoves();
         props.sendMove(pieceColor + pieceNotation + oldPosition + ">" + newPosition);
@@ -262,6 +270,9 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
         let validSquareIds: string[] = [];
         switch (pieceType) {
+            case PieceType.GHOST_PAWN:
+                validSquareIds = [];
+                break;
             case PieceType.BISHOP:
                 validSquareIds = getBishopMoves(row, col);
                 break;
@@ -281,6 +292,7 @@ const ChessBoard = (props: ChessBoardProps) => {
                 validSquareIds = getRookMoves(row, col);
                 break;
         }
+
         validSquareIds.forEach(idx => {
             let squareElement = document.getElementById(idx)?.children[0];
             let squareClass = squareElement?.className;
@@ -317,7 +329,7 @@ const ChessBoard = (props: ChessBoardProps) => {
         for (let i = 1; i < BOARD_SIZE; i++) {
             if (!nWestBlocked && row + i < BOARD_SIZE && col - i >= 0) {
                 const nWestPiece = chessPieceBoard[row + i][col - i];
-                if (nWestPiece == null) {
+                if (nWestPiece == null || nWestPiece.type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row + i},${col - i}`);
                 } else {
                     if (nWestPiece.isWhite !== props.isPlayerWhite) {
@@ -329,7 +341,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
             if (!sWestBlocked && row - i >= 0 && col - i >= 0) {
                 const sWestPiece = chessPieceBoard[row - i][col - i];
-                if (sWestPiece == null) {
+                if (sWestPiece == null || sWestPiece.type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row - i},${col - i}`);
                 } else {
                     if (sWestPiece.isWhite !== props.isPlayerWhite) {
@@ -341,7 +353,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
             if (!nEastBlocked && row + i < BOARD_SIZE && col + i < BOARD_SIZE) {
                 const nEastPiece = chessPieceBoard[row + i][col + i];
-                if (nEastPiece == null) {
+                if (nEastPiece == null || nEastPiece.type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row + i},${col + i}`);
                 } else {
                     if (nEastPiece.isWhite !== props.isPlayerWhite) {
@@ -353,7 +365,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
             if (!sEastBlocked && row - i >= 0 && col + i < BOARD_SIZE) {
                 const sEastPiece = chessPieceBoard[row - i][col + i];
-                if (sEastPiece == null) {
+                if (sEastPiece == null || sEastPiece.type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row - i},${col + i}`);
                 } else {
                     if (sEastPiece.isWhite !== props.isPlayerWhite) {
@@ -378,6 +390,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             for (let j = -1; j < 2; j++) {
                 if (row + i >= 0 && row + i < BOARD_SIZE && col + j >= 0 && col + j < BOARD_SIZE) {
                     if (chessPieceBoard[row + i][col + j] == null
+                        || chessPieceBoard[row + i][col + j].type == PieceType.GHOST_PAWN
                         || chessPieceBoard[row + i][col + j].isWhite !== props.isPlayerWhite) {
                         validSquareIds.push(`${row + i},${col + j}`);
                     }
@@ -394,13 +407,15 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (row - 2 >= 0) {
             if (col - 1 >= 0) {
                 const piece = chessPieceBoard[row - 2][col - 1];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row - 2},${col - 1}`);
                 }
             }
             if (col + 1 < BOARD_SIZE) {
                 const piece = chessPieceBoard[row - 2][col + 1];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row - 2},${col + 1}`);
                 }
             }
@@ -409,13 +424,15 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (row - 1 >= 0) {
             if (col - 2 >= 0) {
                 const piece = chessPieceBoard[row - 1][col - 2];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row - 1},${col - 2}`);
                 }
             }
             if (col + 2 < BOARD_SIZE) {
                 const piece = chessPieceBoard[row - 1][col + 2];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row - 1},${col + 2}`);
                 }
             }
@@ -424,13 +441,15 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (row + 2 < BOARD_SIZE) {
             if (col - 1 >= 0) {
                 const piece = chessPieceBoard[row + 2][col - 1];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row + 2},${col - 1}`);
                 }
             }
             if (col + 1 < BOARD_SIZE) {
                 const piece = chessPieceBoard[row + 2][col + 1];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row + 2},${col + 1}`);
                 }
             }
@@ -439,13 +458,15 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (row + 1 < BOARD_SIZE) {
             if (col - 2 >= 0) {
                 const piece = chessPieceBoard[row + 1][col - 2];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row + 1},${col - 2}`);
                 }
             }
             if (col + 2 < BOARD_SIZE) {
                 const piece = chessPieceBoard[row + 1][col + 2];
-                if (piece == null || piece.isWhite !== props.isPlayerWhite) {
+                if (piece == null || piece.type == PieceType.GHOST_PAWN
+                    || piece.isWhite !== props.isPlayerWhite) {
                     validSquareIds.push(`${row + 1},${col + 2}`);
                 }
             }
@@ -507,7 +528,8 @@ const ChessBoard = (props: ChessBoardProps) => {
         let rightBlocked = false;
         for (let i = 1; i < BOARD_SIZE; i++) {
             if (row + i < BOARD_SIZE && !topBlocked) {
-                if (chessPieceBoard[row + i][col] == null) {
+                if (chessPieceBoard[row + i][col] == null
+                    || chessPieceBoard[row + i][col].type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row + i},${col}`);
                 } else {
                     if (chessPieceBoard[row + i][col].isWhite !== props.isPlayerWhite) {
@@ -518,7 +540,8 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             if (row - i >= 0 && !btmBlocked) {
-                if (chessPieceBoard[row - i][col] == null) {
+                if (chessPieceBoard[row - i][col] == null
+                    || chessPieceBoard[row - i][col].type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row - i},${col}`);
                 } else {
                     if (chessPieceBoard[row - i][col].isWhite !== props.isPlayerWhite) {
@@ -529,7 +552,8 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             if (col + i < BOARD_SIZE && !rightBlocked) {
-                if (chessPieceBoard[row][col + i] == null) {
+                if (chessPieceBoard[row][col + i] == null
+                    || chessPieceBoard[row][col + i].type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row},${col + i}`);
                 } else {
                     if (chessPieceBoard[row][col + i].isWhite !== props.isPlayerWhite) {
@@ -540,7 +564,8 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
 
             if (col - i >= 0 && !leftBlocked) {
-                if (chessPieceBoard[row][col - i] == null) {
+                if (chessPieceBoard[row][col - i] == null
+                    || chessPieceBoard[row][col - i].type == PieceType.GHOST_PAWN) {
                     validSquareIds.push(`${row},${col - i}`);
                 } else {
                     if (chessPieceBoard[row][col - i].isWhite !== props.isPlayerWhite) {
@@ -579,6 +604,14 @@ const ChessBoard = (props: ChessBoardProps) => {
                     break;
                 case "K":
                     type = PieceType.KING;
+                    break;
+                case "E":
+                    if (boardStr.substring(i, i + 2) === "EP") {
+                        type = PieceType.GHOST_PAWN;
+                        i += 1;
+                    } else {
+                        type = PieceType.PAWN;
+                    }
                     break;
                 default:
                     type = PieceType.PAWN;
