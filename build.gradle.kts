@@ -6,7 +6,7 @@ plugins {
 
 group = "com.pijieh"
 
-version = "v0.2"
+version = ""
 
 java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 
