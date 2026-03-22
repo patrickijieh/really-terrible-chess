@@ -76,7 +76,30 @@ class ChessSquareProps {
     }
 }
 
+class PromotionTableProps {
+    isWhite: boolean;
+    callback: Function;
+    promotionState: PromotionState;
+
+    constructor(isWhite: boolean, callback: Function, promotionState: PromotionState) {
+        this.isWhite = isWhite;
+        this.callback = callback;
+        this.promotionState = promotionState;
+    }
+}
+
+type PromotionState = {
+    row: number;
+    col: number;
+    newRow: number;
+    newCol: number;
+    type: PieceType;
+    capture: boolean;
+    capturedType: PieceType;
+}
+
 enum PieceType {
+    NONE = "NONE",
     GHOST_PAWN = "EP",
     PAWN = "PAWN",
     KNIGHT = "KNIGHT",
@@ -86,4 +109,4 @@ enum PieceType {
     KING = "KING"
 }
 
-export { ChessPieceInfo, PieceType, ChessPieceProps, ChessBoardProps, ChessSquareProps };
+export { ChessPieceInfo, PieceType, ChessPieceProps, ChessBoardProps, ChessSquareProps, PromotionTableProps, type PromotionState };

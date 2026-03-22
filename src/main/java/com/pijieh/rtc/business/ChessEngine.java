@@ -220,16 +220,16 @@ public class ChessEngine {
         if (typ == PieceType.PAWN) {
             oldPos = convertStringToPosition(moveStr.substring(1, 3));
             if (isCapture) {
-                newPos = convertStringToPosition(moveStr.substring(5));
+                newPos = convertStringToPosition(moveStr.substring(5, 7));
             } else {
-                newPos = convertStringToPosition(moveStr.substring(4));
+                newPos = convertStringToPosition(moveStr.substring(4, 6));
             }
         } else {
             oldPos = convertStringToPosition(moveStr.substring(2, 4));
             if (isCapture) {
-                newPos = convertStringToPosition(moveStr.substring(6));
+                newPos = convertStringToPosition(moveStr.substring(6, 8));
             } else {
-                newPos = convertStringToPosition(moveStr.substring(5));
+                newPos = convertStringToPosition(moveStr.substring(5, 7));
             }
         }
 
@@ -328,7 +328,8 @@ public class ChessEngine {
 
     private PieceType parsePieceType(String moveStr) {
         char pieceNotation = moveStr.charAt(1);
-        PieceType type = switch (pieceNotation) {
+
+        return switch (pieceNotation) {
             case 'B' -> PieceType.BISHOP;
             case 'K' -> PieceType.KING;
             case 'N' -> PieceType.KNIGHT;
@@ -336,8 +337,6 @@ public class ChessEngine {
             case 'R' -> PieceType.ROOK;
             default -> PieceType.PAWN;
         };
-
-        return type;
     }
 
     private boolean validateMove(ChessPiece[][] board, PieceType type, boolean pieceIsWhite,
@@ -841,8 +840,9 @@ public class ChessEngine {
                     sb.append(pieceStr + " ");
                 }
             }
-            log.info(sb.toString());
-            sb.setLength(0);
+            sb.append("\n");
         }
+
+        log.info("board state:\n{}\n", sb.toString());
     }
 }

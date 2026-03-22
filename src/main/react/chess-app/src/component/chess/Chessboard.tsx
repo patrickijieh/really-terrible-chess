@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect, type JSX, type MouseEvent } from "react";
-import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps } from "./types";
+import { PieceType, ChessPieceInfo, ChessBoardProps, ChessPieceProps, type PromotionState } from "./types";
 import ChessSquare from "./ChessSquare";
 import "../../styles.css";
+import PromotionTable from "./PromotionTable";
 
 const STARTING_WHITE: string = "Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2";
 const STARTING_BLACK: string = "Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7";
@@ -14,6 +15,16 @@ const ChessBoard = (props: ChessBoardProps) => {
     const [draggedClone, setDraggedClone] = useState<HTMLImageElement | null>();
     const [dragging, setDragging] = useState(false);
     const [dropped, setDropped] = useState(false);
+    const [promotionVisible, setPromotionVisible] = useState(false);
+    const [promotionState, setPromotionState] = useState<PromotionState>({
+        row: -1,
+        col: -1,
+        newRow: -1,
+        newCol: -1,
+        type: PieceType.NONE,
+        capture: false,
+        capturedType: PieceType.NONE
+    });
     const dragRef = useRef<EventTarget>(null);
 
     useEffect(() => {
@@ -196,7 +207,7 @@ const ChessBoard = (props: ChessBoardProps) => {
             return;
         }
 
-        let draggedPieceType = dragRef.current.firstChild.getAttribute("piece-type");
+        let draggedPieceTypeStr = dragRef.current.firstChild.getAttribute("piece-type");
         let draggedPieceColor = dragRef.current.firstChild.getAttribute("piece-color");
 
         let pieceColor: string = "";
@@ -213,33 +224,41 @@ const ChessBoard = (props: ChessBoardProps) => {
         }
 
         let pieceNotation: string;
-        switch (draggedPieceType) {
+        let pieceType: PieceType;
+        switch (draggedPieceTypeStr) {
             case PieceType.BISHOP:
                 pieceNotation = "B";
+                pieceType = PieceType.BISHOP;
                 break;
             case PieceType.KING:
                 pieceNotation = "K";
+                pieceType = PieceType.KING;
                 break;
             case PieceType.KNIGHT:
                 pieceNotation = "N";
+                pieceType = PieceType.KNIGHT;
                 break;
             case PieceType.QUEEN:
                 pieceNotation = "Q";
+                pieceType = PieceType.QUEEN;
                 break;
             case PieceType.ROOK:
                 pieceNotation = "R";
+                pieceType = PieceType.ROOK;
                 break;
             default:
                 pieceNotation = "";
+                pieceType = PieceType.PAWN;
         }
 
-        let oldPosition: string = "";
+        let oldPositionStr: string = "";
         if (pos !== undefined) {
-            oldPosition = convertIdToAlgebraicNotation(pos);
+            oldPositionStr = convertIdToAlgebraicNotation(pos);
         }
 
         let capture = false;
         let enPassant = false;
+        let castle = false;
         const attackedPiece = chessPieceBoard[row][col];
         if (attackedPiece != null) {
             const attackedPieceIsWhite = attackedPiece.isWhite;
@@ -249,9 +268,44 @@ const ChessBoard = (props: ChessBoardProps) => {
                     enPassant = true;
                 }
             }
+            if (attackedPieceIsWhite === draggedPieceIsWhite
+                && (attackedPiece.type === PieceType.ROOK || attackedPiece.type === PieceType.KING)) {
+                castle = true;
+            }
         }
 
         setDropped(false);
+        clearValidMoves();
+
+
+        // piece promotion
+        if (((row == 0 && !props.isPlayerWhite) || (row == BOARD_SIZE - 1 && props.isPlayerWhite)) && isPromotable(pieceType)) {
+            const oldPosition = convertStringToPosition(oldPositionStr);
+            setPromotionState({
+                row: oldPosition.row,
+                col: oldPosition.col,
+                newRow: row,
+                newCol: col,
+                type: pieceType,
+                capture: capture,
+                capturedType: attackedPiece.type
+            });
+            setPromotionVisible(true);
+            return;
+        }
+
+        if (castle) {
+            const oldColumn = convertStringToPosition(oldPositionStr).col;
+            let queenside: boolean = (attackedPiece.pos.col === 0 || oldColumn === 0);
+            if (queenside) {
+                props.sendMove(pieceColor + "O-O-O");
+            } else {
+                props.sendMove(pieceColor + "O-O");
+            }
+
+            return;
+        }
+
         let newPosition = convertPositionToString(row, col);
         if (capture) {
             if (enPassant) {
@@ -260,8 +314,60 @@ const ChessBoard = (props: ChessBoardProps) => {
                 newPosition = "x" + newPosition;
             }
         }
-        clearValidMoves();
-        props.sendMove(pieceColor + pieceNotation + oldPosition + ">" + newPosition);
+        props.sendMove(pieceColor + pieceNotation + oldPositionStr + ">" + newPosition);
+    }
+
+    const isPromotable = (pieceType: PieceType): boolean => {
+        return (pieceType != PieceType.QUEEN) && (pieceType != PieceType.KING) && (pieceType != PieceType.GHOST_PAWN) && (pieceType != PieceType.NONE);
+    }
+
+    const handlePiecePromotion = (newType: PieceType, promoState: PromotionState) => {
+        console.log(`I have been clicked! old position=(${promoState.row},${promoState.col}), new piece=${newType}`);
+        setPromotionVisible(false);
+
+        let piece = chessPieceBoard[promoState.row][promoState.col];
+        let pieceColor = piece.isWhite ? "w" : "b";
+
+        let pieceNotation: string;
+        switch (promoState.type) {
+            case PieceType.KNIGHT:
+                pieceNotation = "N";
+                break;
+            case PieceType.BISHOP:
+                pieceNotation = "B";
+                break;
+            case PieceType.ROOK:
+                pieceNotation = "R";
+                break;
+            default:
+                pieceNotation = "";
+        }
+
+        let newPieceNotation: string;
+        switch (newType) {
+            case PieceType.KNIGHT:
+                newPieceNotation = "N";
+                break;
+            case PieceType.BISHOP:
+                newPieceNotation = "B";
+                break;
+            case PieceType.ROOK:
+                newPieceNotation = "R";
+                break;
+            case PieceType.QUEEN:
+                newPieceNotation = "Q";
+                break;
+            default:
+                newPieceNotation = "";
+        }
+
+        let newPosition = convertPositionToString(promoState.newRow, promoState.newCol);
+        let oldPosition = convertPositionToString(promoState.row, promoState.col);
+        if (promoState.capture) {
+            newPosition = "x" + newPosition;
+        }
+        let moveStr = pieceColor + pieceNotation + oldPosition + ">" + newPosition;
+        props.sendMove(`${moveStr}(${newPieceNotation})`);
     }
 
     const showAvailableMoves = (pieceType: PieceType, row: number, col: number, isPieceWhite: boolean) => {
@@ -394,6 +500,63 @@ const ChessBoard = (props: ChessBoardProps) => {
                         || chessPieceBoard[row + i][col + j].isWhite !== props.isPlayerWhite) {
                         validSquareIds.push(`${row + i},${col + j}`);
                     }
+                }
+            }
+        }
+
+        // castling
+        if (props.isPlayerWhite && row == 0 && col == 4) {
+            if (chessPieceBoard[row][BOARD_SIZE - 1] != null
+                && chessPieceBoard[row][BOARD_SIZE - 1].type == PieceType.ROOK
+                && chessPieceBoard[row][BOARD_SIZE - 1].isWhite) {
+                let unblocked = true;
+                for (let i = 5; i < BOARD_SIZE - 2; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${BOARD_SIZE - 1}`);
+                }
+            }
+            if (chessPieceBoard[row][0] != null
+                && chessPieceBoard[row][0].type == PieceType.ROOK
+                && chessPieceBoard[row][0].isWhite) {
+                let unblocked = true;
+                for (let i = 1; i < 4; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${0}`);
+                }
+            }
+        } else if (!props.isPlayerWhite && row == BOARD_SIZE - 1 && col == 4) {
+            if (chessPieceBoard[row][BOARD_SIZE - 1] != null
+                && chessPieceBoard[row][BOARD_SIZE - 1].type == PieceType.ROOK
+                && !chessPieceBoard[row][BOARD_SIZE - 1].isWhite) {
+                let unblocked = true;
+                for (let i = 5; i < BOARD_SIZE - 2; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${BOARD_SIZE - 1}`);
+                }
+            }
+            if (chessPieceBoard[row][0] != null
+                && chessPieceBoard[row][0].type == PieceType.ROOK
+                && !chessPieceBoard[row][0].isWhite) {
+                let unblocked = true;
+                for (let i = 1; i < 4; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${0}`);
                 }
             }
         }
@@ -576,6 +739,67 @@ const ChessBoard = (props: ChessBoardProps) => {
             }
         }
 
+        // castling
+        if (props.isPlayerWhite && row == 0 && (col == BOARD_SIZE - 1 || col == 0)) {
+            if (col == BOARD_SIZE - 1
+                && chessPieceBoard[row][4] != null
+                && chessPieceBoard[row][4].type == PieceType.KING
+                && chessPieceBoard[row][4].isWhite) {
+                let unblocked = true;
+                for (let i = 5; i < BOARD_SIZE - 2; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${4}`);
+                }
+            }
+            if (col == 0 &&
+                chessPieceBoard[row][4] != null
+                && chessPieceBoard[row][4].type == PieceType.KING
+                && chessPieceBoard[row][4].isWhite) {
+                let unblocked = true;
+                for (let i = 1; i < 4; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${4}`);
+                }
+            }
+        } else if (!props.isPlayerWhite && row == BOARD_SIZE - 1 && (col == BOARD_SIZE - 1 || col == 0)) {
+            if (col == BOARD_SIZE - 1
+                && chessPieceBoard[row][4] != null
+                && chessPieceBoard[row][4].type == PieceType.KING
+                && !chessPieceBoard[row][4].isWhite) {
+                let unblocked = true;
+                for (let i = 5; i < BOARD_SIZE - 2; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${4}`);
+                }
+            }
+            if (col == 0
+                && chessPieceBoard[row][4] != null
+                && chessPieceBoard[row][4].type == PieceType.KING
+                && !chessPieceBoard[row][4].isWhite) {
+                let unblocked = true;
+                for (let i = 1; i < 4; i++) {
+                    if (chessPieceBoard[row][i] != null) {
+                        unblocked = false;
+                    }
+                }
+                if (unblocked) {
+                    validSquareIds.push(`${row},${4}`);
+                }
+            }
+        }
+
         return validSquareIds;
     }
 
@@ -660,7 +884,7 @@ const ChessBoard = (props: ChessBoardProps) => {
 
     colNumber = 0;
 
-    const chessTable = <table>
+    const chessTable = <table id="table">
         {columnLabels}
         {board.map(row => {
             let tr = <tr>
@@ -685,6 +909,13 @@ const ChessBoard = (props: ChessBoardProps) => {
             onMouseMove={(event) =>
                 handleMouseMove(event)}>
             {chessTable}
+            {promotionVisible ?
+                <PromotionTable
+                    isWhite={props.isPlayerWhite}
+                    promotionState={promotionState}
+                    callback={handlePiecePromotion} /> :
+                <></>
+            }
         </div>
     );
 };

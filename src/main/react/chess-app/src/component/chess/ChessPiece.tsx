@@ -35,7 +35,7 @@ const ChessPiece = ({ type, isWhite, draggable }: ChessPieceProps) => {
         case PieceType.PAWN:
             imgSrc = isWhite ? whitePawn : blackPawn;
             break;
-        case PieceType.GHOST_PAWN:
+        default:
             imgSrc = "";
             draggable = false;
             break;

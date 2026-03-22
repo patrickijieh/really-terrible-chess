@@ -139,6 +139,11 @@ body {
     background-color: #ffffff;
 }
 
+.cell-promotion {
+    background-color: #411710;
+    border: 1.5px solid #411710;
+}
+
 .dragged {
     opacity: 1.0;
 }
@@ -227,4 +232,12 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.promotion-table {
+    z-index: 2;
+    position: absolute;
+    display: grid;
+    top: 5rem;
+    left: 5rem;
 }
