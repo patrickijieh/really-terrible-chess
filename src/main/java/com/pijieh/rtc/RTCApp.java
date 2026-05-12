@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.pijieh.rtc.business.ChessEngine;
 import com.pijieh.rtc.business.ChessRoomManager;
-import com.pijieh.rtc.database.ChessDatabase;
+import com.pijieh.rtc.database.SQLDatabase;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,8 +26,8 @@ public class RTCApp {
     int boardSize;
 
     @Bean
-    ChessDatabase database() throws SQLException {
-        return new ChessDatabase();
+    SQLDatabase database() throws SQLException {
+        return new SQLDatabase();
     }
 
     @Bean

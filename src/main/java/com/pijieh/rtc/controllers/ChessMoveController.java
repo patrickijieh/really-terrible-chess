@@ -57,14 +57,21 @@ public class ChessMoveController {
             return;
         }
 
-        final Optional<String> board = chessRoomManager.makeMove(gameId, move);
-        if (board.isEmpty()) {
+        Optional<String> message = chessRoomManager.makeMove(gameId, move);
+        if (message.isEmpty()) {
             sendMoveErrorMessage(gameId, move.getUsername(),
                     chessRoomManager.getChessboardFromId(gameId), isWhitesTurn.get());
             return;
         }
 
-        sendBoardUpdate(gameId, board.get(), chessRoomManager.getGameStateFromId(gameId), !isWhitesTurn.get());
+        if (chessRoomManager.getGameStateFromId(gameId) == GameState.FINISHED) {
+            String playerColor = isWhitesTurn.get() ? "w" : "b";
+            log.info("game with id={} finished, {} player won", gameId, playerColor);
+        }
+
+        log.debug("board state:\n{}\n", chessRoomManager.getPrettyBoardStr(gameId));
+
+        sendBoardUpdate(gameId, message.get(), chessRoomManager.getGameStateFromId(gameId), !isWhitesTurn.get());
     }
 
     private void sendMoveErrorMessage(String gameId, String player, String board, boolean isWhitesTurn) {

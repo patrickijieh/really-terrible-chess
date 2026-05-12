@@ -175,6 +175,7 @@ body {
 
 .form-label {
     width: 150px;
+    text-align: start;
 }
 
 .form-input {
@@ -183,9 +184,11 @@ body {
     font-size: 14px;
     background-color: #20202C;
     color: #fff;
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
     height: 40px;
+}
+
+.form-group {
+    align-items: start;
 }
 
 .chesstable {
@@ -228,10 +231,10 @@ body {
 }
 
 .no-select {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .promotion-table {
@@ -240,4 +243,36 @@ body {
     display: grid;
     top: 5rem;
     left: 5rem;
+}
+
+.error-msg {
+    color: red;
+}
+
+.error-msg-empty {
+    color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    padding: 2rem;
+    width: 50%;
+    background-color: #30303C;
 }

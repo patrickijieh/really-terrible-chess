@@ -78,12 +78,12 @@ class ChessSquareProps {
 
 class PromotionTableProps {
     isWhite: boolean;
-    callback: Function;
+    promotionCallback: Function;
     promotionState: PromotionState;
 
     constructor(isWhite: boolean, callback: Function, promotionState: PromotionState) {
         this.isWhite = isWhite;
-        this.callback = callback;
+        this.promotionCallback = callback;
         this.promotionState = promotionState;
     }
 }

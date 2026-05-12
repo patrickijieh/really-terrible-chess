@@ -322,7 +322,6 @@ const ChessBoard = (props: ChessBoardProps) => {
     }
 
     const handlePiecePromotion = (newType: PieceType, promoState: PromotionState) => {
-        console.log(`I have been clicked! old position=(${promoState.row},${promoState.col}), new piece=${newType}`);
         setPromotionVisible(false);
 
         let piece = chessPieceBoard[promoState.row][promoState.col];
@@ -366,7 +365,12 @@ const ChessBoard = (props: ChessBoardProps) => {
         if (promoState.capture) {
             newPosition = "x" + newPosition;
         }
+
         let moveStr = pieceColor + pieceNotation + oldPosition + ">" + newPosition;
+        if (newType == PieceType.NONE) {
+            props.sendMove(moveStr);
+            return;
+        }
         props.sendMove(`${moveStr}(${newPieceNotation})`);
     }
 
@@ -913,7 +917,7 @@ const ChessBoard = (props: ChessBoardProps) => {
                 <PromotionTable
                     isWhite={props.isPlayerWhite}
                     promotionState={promotionState}
-                    callback={handlePiecePromotion} /> :
+                    promotionCallback={handlePiecePromotion} /> :
                 <></>
             }
         </div>

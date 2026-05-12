@@ -18,6 +18,15 @@ type UserMessage = {
     isWhitesTurn?: boolean
 };
 
+type MoveMessage = {
+    gameId: string,
+    board: string,
+    status: string,
+    gameState: string
+    isWhitesTurn: boolean,
+    message?: string
+}
+
 type Player = {
     username: string
 };
@@ -95,9 +104,9 @@ class WebSocketClient {
     }
 
     private handleGameMoveMessages(msg: Message) {
-        let msgBody: UserMessage = JSON.parse(msg.body);
+        let msgBody: MoveMessage = JSON.parse(msg.body);
         if (msgBody.board && this.updateGameState) {
-            this.updateGameState(msgBody.board, this.getOpponent(), this.username_, msgBody.isPlayerWhite, msgBody.isWhitesTurn);
+            this.updateGameState(msgBody.board, this.getOpponent(), this.username_, null, msgBody.isWhitesTurn, msgBody.gameState);
         }
     }
 

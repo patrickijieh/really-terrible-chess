@@ -15,7 +15,7 @@ import com.mchange.v2.c3p0.DataSources;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class ChessDatabase {
+public final class SQLDatabase {
     public enum SessionCode {
         SQL_ERROR,
         SESSION_CREATED,
@@ -26,7 +26,7 @@ public final class ChessDatabase {
 
     private DataSource dataSource;
 
-    public ChessDatabase() throws SQLException {
+    public SQLDatabase() throws SQLException {
         SQLiteDataSource sqliteDataSource = new SQLiteDataSource();
         String databaseUrl = "jdbc:sqlite:";
         sqliteDataSource.setUrl(databaseUrl);

@@ -31,8 +31,13 @@ const PromotionTable = (props: PromotionTableProps) => {
 
     let key = 0;
     return <div className="promotion-table" style={{ top: `${topOffset + 1}px`, left: `${leftOffset + 1}px` }}>
+
+        {props.promotionState.type != PieceType.PAWN ?
+            <PromotionSquare typ={PieceType.NONE} isWhite={props.isWhite} callback={props.promotionCallback} promotionState={props.promotionState} /> :
+            <></>
+        }
         {validPromotions.map(type => <div key={key++}>
-            <PromotionSquare typ={type} isWhite={props.isWhite} callback={props.callback} promotionState={props.promotionState} />
+            <PromotionSquare typ={type} isWhite={props.isWhite} callback={props.promotionCallback} promotionState={props.promotionState} />
         </div>
         )}
     </div>;

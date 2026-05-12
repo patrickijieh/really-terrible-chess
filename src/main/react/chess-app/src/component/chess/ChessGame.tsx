@@ -2,10 +2,15 @@ import { WebSocketClient } from "../../WebSocketClient";
 import { useEffect, useState } from "react";
 import ChessBoard from "./Chessboard";
 import PlayerInformation from "../PlayerInformation";
+import chess1mp3 from "../../audio/chess1.mp3";
+import chess3mp3 from "../../audio/chess3.mp3";
+//import captureSound from "../../audio/chess3.mp3";
 import "../../styles.css";
+import GameOverModal from "../GameOverModal";
 
 const ChessGame = () => {
     document.title = "Really Terrible Chess";
+
 
     const [wsClient, setWsClient] = useState<WebSocketClient>(new WebSocketClient());
     const [boardStr, setBoardStr] = useState("");
@@ -13,8 +18,11 @@ const ChessGame = () => {
     const [isWhitesTurn, setWhitesTurn] = useState(true);
     const [gameData, setGameData] = useState({
         player: "You",
-        opponent: "Opponent"
+        opponent: "Opponent",
+        state: "NORMAL"
     });
+    const moveSound1 = new Audio(chess1mp3);
+    const moveSound2 = new Audio(chess3mp3);
 
     useEffect(() => {
         let username = localStorage.getItem("username");
@@ -27,23 +35,43 @@ const ChessGame = () => {
         startWebSocketClient();
     }, []);
 
-    const updateGameState = (board: string, opp: string, username: string, isWhite?: boolean, isWhitesTurn?: boolean) => {
+    const updateGameState = (board: string, opp: string, username: string, isWhite?: boolean, whitesTurn?: boolean, gameState?: string) => {
+        let newData = {
+            ...gameData
+        };
+
+        newData.opponent = opp;
+        newData.player = username;
+
         if (isWhite != null) {
             setPlayerWhite(isWhite);
         }
 
-        if (isWhitesTurn != null) {
-            setWhitesTurn(isWhitesTurn);
+        if (whitesTurn != null) {
+            setWhitesTurn(whitesTurn);
+        }
+
+        if (gameState != null) {
+            newData.state = gameState;
         }
 
         setGameData({
-            ...gameData,
-            player: username,
-            opponent: opp
+            ...newData
         });
-
         setBoardStr(board);
+
+        playRandomMoveSound();
     }
+
+    const playRandomMoveSound = () => {
+        let rand = Math.random() * 2;
+
+        if (rand < 1) {
+            moveSound1.play();
+        } else {
+            moveSound2.play();
+        }
+    };
 
     const startWebSocketClient = () => {
         const username = localStorage.getItem("username");
@@ -72,21 +100,36 @@ const ChessGame = () => {
     }
 
     const playerTitle = `${gameData.player} (You)`;
+
+    if (gameData.state === "FINISHED") {
+        if (isWhitesTurn !== isPlayerWhite) {
+            console.log("you won \\o/");
+        } else {
+            console.log("you lost D:");
+        }
+    }
+
     return (
         <>
             <GameHeader gameId={getGameIdString()} />
             <div className="content">
-                <PlayerInformation playerName={gameData.opponent ? gameData.opponent : "Opponent"}
-                    alignRight={false}
-                    isCurrentTurn={!(isWhitesTurn == isPlayerWhite)}
-                />
-                <div id="chesstable" className="chesstable">
-                    <ChessBoard board={boardStr} sendMove={sendMove} isPlayerWhite={isPlayerWhite} isWhitesTurn={isWhitesTurn} />
-                </div>
-                <PlayerInformation playerName={playerTitle}
-                    alignRight={true}
-                    isCurrentTurn={isWhitesTurn == isPlayerWhite}
-                />
+                <GameOverModal show={gameData.state === "FINISHED"} isWinner={isWhitesTurn !== isPlayerWhite} opponentName={gameData.opponent} />
+                {boardStr ?
+                    <>
+                        <PlayerInformation playerName={gameData.opponent ? gameData.opponent : "Opponent"}
+                            alignRight={false}
+                            isCurrentTurn={!(isWhitesTurn == isPlayerWhite)}
+                        />
+                        <div id="chesstable" className="chesstable">
+                            <ChessBoard board={boardStr} sendMove={sendMove} isPlayerWhite={isPlayerWhite} isWhitesTurn={isWhitesTurn} />
+                        </div>
+                        <PlayerInformation playerName={playerTitle}
+                            alignRight={true}
+                            isCurrentTurn={isWhitesTurn == isPlayerWhite}
+                        />
+                    </> :
+                    <></>
+                }
             </div>
         </>
     );

@@ -11,8 +11,8 @@ import com.pijieh.rtc.business.models.ChessMove;
 import com.pijieh.rtc.business.models.MoveState;
 import com.pijieh.rtc.business.models.Player;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
-import com.pijieh.rtc.database.ChessDatabase;
-import com.pijieh.rtc.database.ChessDatabase.SessionCode;
+import com.pijieh.rtc.database.SQLDatabase;
+import com.pijieh.rtc.database.SQLDatabase.SessionCode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class ChessRoomManager {
     @Autowired
-    ChessDatabase database;
+    SQLDatabase database;
 
     @Autowired
     ChessEngine chessEngine;
@@ -184,6 +184,12 @@ public final class ChessRoomManager {
         game.setGhostPiecePosition(data.getGhostPiecePosition());
 
         return Optional.of(chessEngine.stringifyBoard(game.getChessboard()));
+    }
+
+    public String getPrettyBoardStr(String gameId) {
+        final ChessGame game = chessGames.get(gameId);
+
+        return chessEngine.getPrettyBoardStr(game.getChessboard());
     }
 
     private void destroyGame(String gameId) {

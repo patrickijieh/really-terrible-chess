@@ -12,6 +12,7 @@ import whiteKnight from "../../img/chess-pieces/white-knight.png";
 import blackKnight from "../../img/chess-pieces/black-knight.png";
 import whitePawn from "../../img/chess-pieces/white-pawn.png";
 import blackPawn from "../../img/chess-pieces/black-pawn.png";
+import X from "../../img/red-cross.png";
 
 const ChessPiece = ({ type, isWhite, draggable }: ChessPieceProps) => {
     let imgSrc: string;
@@ -34,6 +35,9 @@ const ChessPiece = ({ type, isWhite, draggable }: ChessPieceProps) => {
             break;
         case PieceType.PAWN:
             imgSrc = isWhite ? whitePawn : blackPawn;
+            break;
+        case PieceType.NONE:
+            imgSrc = X;
             break;
         default:
             imgSrc = "";

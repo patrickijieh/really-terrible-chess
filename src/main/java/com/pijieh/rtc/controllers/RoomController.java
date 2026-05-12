@@ -44,7 +44,14 @@ public class RoomController {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Optional<String> gameId = chessRoomManager.createRoom(createForm.getUsername());
+        String username = createForm.getUsername();
+
+        if (!checkIfValidUsername(username)) {
+            final String body = gson.toJson(Map.of("error", "username does not meet criteria"));
+            return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<String> gameId = chessRoomManager.createRoom(username);
 
         if (gameId.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -59,14 +66,26 @@ public class RoomController {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        String username = joinForm.getUsername();
+
+        if (!checkIfValidUsername(username)) {
+            final String body = gson.toJson(Map.of("error", "username does not meet criteria"));
+            return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        }
+
         Optional<String> gameId = chessRoomManager.joinRoom(joinForm.getGameId(),
                 joinForm.getUsername());
 
         if (gameId.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            final String body = gson.toJson(Map.of("error", "invalid game ID"));
+            return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
         }
 
         final String body = gson.toJson(Map.of("gameId", gameId.get()));
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
+    }
+
+    private boolean checkIfValidUsername(String username) {
+        return username.length() > 3 && username.length() < 15;
     }
 }

@@ -87,7 +87,6 @@ public class ChessEngine {
             log.info("game is in check");
         }
 
-        debugBoard(board);
         return moveState;
     }
 
@@ -142,6 +141,26 @@ public class ChessEngine {
         }
 
         return whitePieces.toString() + "|" + blackPieces.toString();
+    }
+
+    public String getPrettyBoardStr(ChessPiece[][] board) {
+        final StringBuilder sb = new StringBuilder();
+        for (ChessPiece[] row : board) {
+            for (ChessPiece piece : row) {
+                if (piece == null) {
+                    sb.append("_ ");
+                } else {
+                    String pieceStr = piece.toString();
+                    if (piece.isWhite()) {
+                        pieceStr = pieceStr.toLowerCase();
+                    }
+                    sb.append(pieceStr + " ");
+                }
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
     }
 
     private MoveState makeEnPassantMove(ChessPiece[][] board, String moveStr, PieceType typ, boolean isWhite,
@@ -824,25 +843,5 @@ public class ChessEngine {
     private String convertPositionToString(int row, int col) {
         final char column = (char) ('a' + col);
         return column + "" + (row + 1);
-    }
-
-    private void debugBoard(ChessPiece[][] board) {
-        final StringBuilder sb = new StringBuilder();
-        for (ChessPiece[] row : board) {
-            for (ChessPiece piece : row) {
-                if (piece == null) {
-                    sb.append("_ ");
-                } else {
-                    String pieceStr = piece.toString();
-                    if (piece.isWhite()) {
-                        pieceStr = pieceStr.toLowerCase();
-                    }
-                    sb.append(pieceStr + " ");
-                }
-            }
-            sb.append("\n");
-        }
-
-        log.info("board state:\n{}\n", sb.toString());
     }
 }
