@@ -1,10 +1,9 @@
 package com.pijieh.rtc.business.models.forms;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class CreateRoomForm {
-    @NonNull
-    String username;
+public record CreateRoomForm (String username) {
+    public CreateRoomForm {
+        Objects.requireNonNull(username);
+    }
 }

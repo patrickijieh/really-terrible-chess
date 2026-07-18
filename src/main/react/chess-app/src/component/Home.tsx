@@ -16,13 +16,13 @@ const Home = () => {
                         <div>
                             <h3>create a new room</h3>
                         </div>
-                        <NavLink to="/create-room" className="common-button">Create Room</NavLink>
+                        <NavLink to="/create" className="common-button">Create Room</NavLink>
                     </section>
                     <section className='game-navigation'>
                         <div>
                             <h3>join a room</h3>
                         </div>
-                        <NavLink to="/join-room" className="common-button">Join Room</NavLink>
+                        <NavLink to="/join" className="common-button">Join Room</NavLink>
                     </section>
                 </section>
             </div>

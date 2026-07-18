@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import ChessBoard from "./Chessboard";
 import PlayerInformation from "../PlayerInformation";
 import chess1mp3 from "../../audio/chess1.mp3";
+import chess2mp3 from "../../audio/chess2.mp3";
 import chess3mp3 from "../../audio/chess3.mp3";
-//import captureSound from "../../audio/chess3.mp3";
 import "../../styles.css";
 import GameOverModal from "../GameOverModal";
 
@@ -21,8 +21,9 @@ const ChessGame = () => {
         opponent: "Opponent",
         state: "NORMAL"
     });
-    const moveSound1 = new Audio(chess1mp3);
-    const moveSound2 = new Audio(chess3mp3);
+    const movementSounds = [
+        new Audio(chess1mp3), new Audio(chess2mp3), new Audio(chess3mp3)
+    ];
 
     useEffect(() => {
         let username = localStorage.getItem("username");
@@ -64,13 +65,9 @@ const ChessGame = () => {
     }
 
     const playRandomMoveSound = () => {
-        let rand = Math.random() * 2;
+        let rand = Math.floor(Math.random() * movementSounds.length);
 
-        if (rand < 1) {
-            moveSound1.play();
-        } else {
-            moveSound2.play();
-        }
+        movementSounds[rand].play();
     };
 
     const startWebSocketClient = () => {
@@ -109,9 +106,11 @@ const ChessGame = () => {
         }
     }
 
+    let gameIdString = getGameIdString();
+
     return (
         <>
-            <GameHeader gameId={getGameIdString()} />
+            <GameHeader gameId={gameIdString} />
             <div className="content">
                 <GameOverModal show={gameData.state === "FINISHED"} isWinner={isWhitesTurn !== isPlayerWhite} opponentName={gameData.opponent} />
                 {boardStr ?
@@ -128,12 +127,23 @@ const ChessGame = () => {
                             isCurrentTurn={isWhitesTurn == isPlayerWhite}
                         />
                     </> :
-                    <></>
+                    <InvitePlayers gameId={gameIdString} />
                 }
             </div>
         </>
     );
 };
+
+const InvitePlayers = (props: { gameId: string }) => {
+    return <div className="chesstable">
+        <div>
+            <p>{`it's time to duel!`}</p>
+        </div>
+        <div>
+            <p>{`invite another player by sending them this code: ${props.gameId}!`}</p>
+        </div>
+    </div>;
+}
 
 const GameHeader = (props: { gameId: string }) => {
     return (

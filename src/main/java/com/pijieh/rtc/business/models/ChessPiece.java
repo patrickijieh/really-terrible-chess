@@ -3,8 +3,7 @@ package com.pijieh.rtc.business.models;
 import lombok.NonNull;
 import lombok.Value;
 
-@Value
-public class ChessPiece {
+public record ChessPiece (PieceType type, boolean isWhite) {
     public enum PieceType {
         NONE,
         GHOST_PAWN,
@@ -16,19 +15,9 @@ public class ChessPiece {
         KING
     }
 
-    @NonNull
-    PieceType type;
-
-    boolean isWhite;
-
-    public ChessPiece(PieceType type, boolean isWhite) {
-        this.type = type;
-        this.isWhite = isWhite;
-    }
-
     @Override
     public String toString() {
-        String symbol = switch (type) {
+        return switch (this.type) {
             case KNIGHT -> "N";
             case BISHOP -> "B";
             case ROOK -> "R";
@@ -36,9 +25,7 @@ public class ChessPiece {
             case KING -> "K";
             case PAWN -> "P";
             case GHOST_PAWN -> "EP";
-            default -> new String();
+            default -> "";
         };
-
-        return symbol;
     }
 }

@@ -41,7 +41,7 @@ const JoinRoom = () => {
             return;
         }
 
-        const response = await fetch("/join-room", {
+        const response = await fetch("/join", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

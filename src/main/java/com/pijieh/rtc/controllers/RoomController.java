@@ -3,7 +3,6 @@ package com.pijieh.rtc.controllers;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,28 +24,30 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Controller
 public class RoomController {
     private static final Gson gson = new Gson();
+    final ChessRoomManager chessRoomManager;
 
-    @Autowired
-    ChessRoomManager chessRoomManager;
+    public RoomController(ChessRoomManager chessRoomManager) {
+        this.chessRoomManager = chessRoomManager;
+    }
 
-    @GetMapping("/create-room")
+    @GetMapping("/create")
     public String createRoom() {
         return "html/index.html";
     }
 
-    @GetMapping("/join-room")
+    @GetMapping("/join")
     public String joinRoom() {
         return "html/index.html";
     }
 
-    @PostMapping("/create-room")
+    @PostMapping("/create")
     public ResponseEntity<String> createRoomSession(@RequestBody CreateRoomForm createForm) {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String username = createForm.getUsername();
+        String username = createForm.username();
 
-        if (!checkIfValidUsername(username)) {
+        if (isInvalidUsername(username)) {
             final String body = gson.toJson(Map.of("error", "username does not meet criteria"));
             return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
         }
@@ -61,20 +62,20 @@ public class RoomController {
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 
-    @PostMapping("/join-room")
+    @PostMapping("/join")
     public ResponseEntity<String> joinRoomSession(@RequestBody JoinRoomForm joinForm) {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String username = joinForm.getUsername();
+        String username = joinForm.username();
 
-        if (!checkIfValidUsername(username)) {
+        if (isInvalidUsername(username)) {
             final String body = gson.toJson(Map.of("error", "username does not meet criteria"));
             return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
         }
 
-        Optional<String> gameId = chessRoomManager.joinRoom(joinForm.getGameId(),
-                joinForm.getUsername());
+        Optional<String> gameId = chessRoomManager.joinRoom(joinForm.gameId(),
+                joinForm.username());
 
         if (gameId.isEmpty()) {
             final String body = gson.toJson(Map.of("error", "invalid game ID"));
@@ -85,7 +86,7 @@ public class RoomController {
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 
-    private boolean checkIfValidUsername(String username) {
-        return username.length() > 3 && username.length() < 15;
+    private boolean isInvalidUsername(String username) {
+        return username.length() < 4 || username.length() > 14;
     }
 }

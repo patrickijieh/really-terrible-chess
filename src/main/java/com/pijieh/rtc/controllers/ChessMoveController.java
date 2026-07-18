@@ -2,7 +2,6 @@ package com.pijieh.rtc.controllers;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,7 +14,6 @@ import com.google.gson.Gson;
 import com.pijieh.rtc.business.ChessEngine;
 import com.pijieh.rtc.business.ChessRoomManager;
 import com.pijieh.rtc.business.messaging.ErrorMessage;
-import com.pijieh.rtc.business.messaging.MoveErrorMessage;
 import com.pijieh.rtc.business.messaging.MoveMessage;
 import com.pijieh.rtc.business.models.ChessMove;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
@@ -25,16 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 public class ChessMoveController {
-    @Autowired
-    ChessRoomManager chessRoomManager;
-
-    @Autowired
-    ChessEngine chessEngine;
-
-    @Autowired
-    SimpMessagingTemplate simpMessagingTemplate;
-
     private static final Gson gson = new Gson();
+
+    final ChessRoomManager chessRoomManager;
+    final ChessEngine chessEngine;
+    final SimpMessagingTemplate simpMessagingTemplate;
+
+    public ChessMoveController(ChessRoomManager chessRoomManager, ChessEngine chessEngine, SimpMessagingTemplate simpMessagingTemplate) {
+        this.chessRoomManager = chessRoomManager;
+        this.chessEngine = chessEngine;
+        this.simpMessagingTemplate = simpMessagingTemplate;
+    }
 
     @MessageMapping("/send-move/{id}")
     public void playerMove(@DestinationVariable(value = "id") String gameId,
@@ -45,21 +44,21 @@ public class ChessMoveController {
         final String whiteUsername = chessRoomManager.getPlayersFromGame(gameId)[0].getUsername();
 
         if (isWhitesTurn.isEmpty()) {
-            simpMessagingTemplate.convertAndSendToUser(move.getUsername(), "/" + gameId,
+            simpMessagingTemplate.convertAndSendToUser(move.username(), "/" + gameId,
                     gson.toJson(new ErrorMessage(gameId, HttpStatus.NOT_FOUND, "game not found")));
             return;
         }
 
-        if (!chessEngine.checkIfValidMove(move.getMove(), gameState,
-                whiteUsername.equals(move.getUsername()), isWhitesTurn.get())) {
-            sendMoveErrorMessage(gameId, move.getUsername(),
+        if (!chessEngine.checkIfValidMove(move.move(), gameState,
+                whiteUsername.equals(move.username()), isWhitesTurn.get())) {
+            sendMoveErrorMessage(gameId, move.username(),
                     chessRoomManager.getChessboardFromId(gameId), isWhitesTurn.get());
             return;
         }
 
         Optional<String> message = chessRoomManager.makeMove(gameId, move);
         if (message.isEmpty()) {
-            sendMoveErrorMessage(gameId, move.getUsername(),
+            sendMoveErrorMessage(gameId, move.username(),
                     chessRoomManager.getChessboardFromId(gameId), isWhitesTurn.get());
             return;
         }
@@ -76,7 +75,7 @@ public class ChessMoveController {
 
     private void sendMoveErrorMessage(String gameId, String player, String board, boolean isWhitesTurn) {
         final String destination = "/" + gameId;
-        final String payload = gson.toJson(new MoveErrorMessage(gameId, HttpStatus.BAD_REQUEST,
+        final String payload = gson.toJson(new ErrorMessage(gameId, HttpStatus.BAD_REQUEST,
                 "bad move", board, isWhitesTurn));
         simpMessagingTemplate.convertAndSendToUser(player, destination, payload);
     }

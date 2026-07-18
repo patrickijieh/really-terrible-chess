@@ -20,7 +20,7 @@ const CreateRoom = () => {
             return;
         }
 
-        const response = await fetch("/create-room", {
+        const response = await fetch("/create", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

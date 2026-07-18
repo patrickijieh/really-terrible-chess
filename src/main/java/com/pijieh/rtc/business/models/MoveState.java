@@ -1,15 +1,12 @@
 package com.pijieh.rtc.business.models;
 
-import lombok.Value;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
-import lombok.NonNull;
 
-@Value
-public class MoveState {
-    boolean isValidMove;
+import java.util.Objects;
 
-    @NonNull
-    GameState gameState;
-
-    BoardPosition ghostPiecePosition;
+public record MoveState(boolean isValidMove, GameState gameState, BoardPosition ghostPiecePosition) {
+    public MoveState {
+        Objects.requireNonNull(gameState);
+        Objects.requireNonNull(ghostPiecePosition);
+    }
 }

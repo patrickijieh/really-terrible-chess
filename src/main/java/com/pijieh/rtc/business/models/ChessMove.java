@@ -1,13 +1,10 @@
 package com.pijieh.rtc.business.models;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class ChessMove {
-    @NonNull
-    String username;
-
-    @NonNull
-    String move;
+public record ChessMove(String username, String move) {
+    public ChessMove {
+        Objects.requireNonNull(username);
+        Objects.requireNonNull(move);
+    }
 }

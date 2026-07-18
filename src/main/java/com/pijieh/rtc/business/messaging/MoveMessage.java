@@ -4,22 +4,13 @@ import org.springframework.http.HttpStatus;
 
 import com.pijieh.rtc.business.models.ChessGame.GameState;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class MoveMessage {
-    @NonNull
-    String gameId;
-
-    @NonNull
-    HttpStatus status;
-
-    @NonNull
-    GameState gameState;
-
-    @NonNull
-    String board;
-
-    boolean isWhitesTurn;
+public record MoveMessage (String gameId, HttpStatus status, GameState gameState, String board, boolean isWhitesTurn) {
+    public MoveMessage {
+        Objects.requireNonNull(gameId);
+        Objects.requireNonNull(status);
+        Objects.requireNonNull(gameState);
+        Objects.requireNonNull(board);
+    }
 }

@@ -1,13 +1,10 @@
 package com.pijieh.rtc.business.models.forms;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class JoinRoomForm {
-    @NonNull
-    String gameId;
-
-    @NonNull
-    String username;
+public record JoinRoomForm(String gameId, String username) {
+    public JoinRoomForm {
+        Objects.requireNonNull(gameId);
+        Objects.requireNonNull(username);
+    }
 }

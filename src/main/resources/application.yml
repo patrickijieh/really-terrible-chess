@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: chess
+  config:
+    import: file:.env[.properties]
+  http:
+    converters:
+      preferred-json-mapper: gson
+
+database:
+  driver: org.postgresql.Driver
+  uri: ${DB_URI}
+  username: ${DB_USER}
+  password: ${DB_PASS}
+
+chess:
+  games:
+    maximum: 10000
+  board:
+    size: 8
+    starting-str: Ra8Nb8Bc8Qd8Ke8Bf8Ng8Rh8a7b7c7d7e7f7g7h7|Ra1Nb1Bc1Qd1Ke1Bf1Ng1Rh1a2b2c2d2e2f2g2h2

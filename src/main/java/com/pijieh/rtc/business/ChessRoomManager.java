@@ -12,7 +12,6 @@ import com.pijieh.rtc.business.models.MoveState;
 import com.pijieh.rtc.business.models.Player;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
 import com.pijieh.rtc.database.SQLDatabase;
-import com.pijieh.rtc.database.SQLDatabase.SessionCode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +44,7 @@ public final class ChessRoomManager {
             return Optional.empty();
         }
 
-        if (database.createSession(gameId, ownerName) != SessionCode.SESSION_CREATED) {
+        if (!database.createChessGame(gameId, ownerName)) {
             return Optional.empty();
         }
 
@@ -58,7 +57,7 @@ public final class ChessRoomManager {
     }
 
     public Optional<String> joinRoom(String gameId, String playerName) {
-        if (database.joinSession(gameId) != SessionCode.SESSION_FOUND) {
+        if (!database.chessGameExists(gameId)) {
             return Optional.empty();
         }
 
@@ -66,6 +65,10 @@ public final class ChessRoomManager {
         if (game.getPlayerTwo() != null
                 && !game.getPlayerTwo().getUsername().equals(playerName)) {
 
+            return Optional.empty();
+        }
+
+        if (!database.joinChessGame(gameId, playerName)) {
             return Optional.empty();
         }
 
@@ -92,9 +95,8 @@ public final class ChessRoomManager {
             throws RuntimeException {
         final ChessGame game = chessGames.get(gameId);
 
-        // Should not happen
         if (game == null) {
-            throw new RuntimeException("game id is somehow not valid; resort to crashing & burning");
+            throw new RuntimeException("Game ID is not valid; resort to crashing & burning");
         }
 
         if (game.getPlayerOne().getUsername().equals(playerName)) {
@@ -114,11 +116,14 @@ public final class ChessRoomManager {
         final Player disconnectedPlayer = players.get(socketSessionId);
 
         if (disconnectedPlayer == null) {
-            log.info("No session found with socket id {}", socketSessionId);
+            log.info("No player session found with socket id {}", socketSessionId);
             return;
         }
 
-        destroyGame(disconnectedPlayer.getGameId());
+        if (!database.chessGameExists(disconnectedPlayer.getGameId())) {
+            destroyGame(disconnectedPlayer.getGameId());
+        }
+
         players.remove(socketSessionId);
     }
 
@@ -173,15 +178,15 @@ public final class ChessRoomManager {
     public Optional<String> makeMove(String gameId, ChessMove move) {
         final ChessGame game = chessGames.get(gameId);
 
-        final MoveState data = chessEngine.makeMove(game.getChessboard(), move.getMove(), game.getGameState(),
+        final MoveState data = chessEngine.makeMove(game.getChessboard(), move.move(), game.getGameState(),
                 game.getGhostPiecePosition());
         if (!data.isValidMove()) {
             return Optional.empty();
         }
 
-        game.setGameState(data.getGameState());
+        game.setGameState(data.gameState());
         game.setWhitesTurn(!game.isWhitesTurn());
-        game.setGhostPiecePosition(data.getGhostPiecePosition());
+        game.setGhostPiecePosition(data.ghostPiecePosition());
 
         return Optional.of(chessEngine.stringifyBoard(game.getChessboard()));
     }
@@ -193,8 +198,8 @@ public final class ChessRoomManager {
     }
 
     private void destroyGame(String gameId) {
-        if (database.deleteSession(gameId) != SessionCode.SESSION_DELETED) {
-            return;
+        if (!database.deleteChessGame(gameId)) {
+            throw new RuntimeException("Trying to remove game with ID " + gameId + " when it does not exist!");
         }
 
         log.info("Deleting game with id: {}", gameId);

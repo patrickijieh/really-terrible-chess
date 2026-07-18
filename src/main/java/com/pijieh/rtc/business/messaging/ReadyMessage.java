@@ -1,17 +1,14 @@
 package com.pijieh.rtc.business.messaging;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class ReadyMessage {
-    @NonNull
-    String gameId;
+public record ReadyMessage(String gameId, String board, boolean isPlayerWhite, boolean ready) {
+    public ReadyMessage {
+        Objects.requireNonNull(gameId);
+        Objects.requireNonNull(board);
+    }
 
-    @NonNull
-    String board;
-
-    boolean isPlayerWhite;
-
-    boolean ready = true;
+    public ReadyMessage(String gameId, String board, boolean isPlayerWhite) {
+        this(gameId, board, isPlayerWhite, true);
+    }
 }

@@ -2,17 +2,15 @@ package com.pijieh.rtc.business.messaging;
 
 import org.springframework.http.HttpStatus;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class ErrorMessage {
-    @NonNull
-    String gameId;
-
-    @NonNull
-    HttpStatus status;
-
-    @NonNull
-    String message;
+public record ErrorMessage(String gameId, HttpStatus status, String message, String board, Boolean isWhitesTurn) {
+    public ErrorMessage {
+        Objects.requireNonNull(gameId);
+        Objects.requireNonNull(status);
+        Objects.requireNonNull(message);
+    }
+    public ErrorMessage(String gameId, HttpStatus status, String message) {
+        this(gameId, status, message, null, null);
+    }
 }

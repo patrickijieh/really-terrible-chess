@@ -1,6 +1,5 @@
 package com.pijieh.rtc.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -23,13 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 public class GameController {
-    @Autowired
-    ChessRoomManager chessRoomManager;
-
-    @Autowired
-    SimpMessagingTemplate simpMessagingTemplate;
-
     private static final Gson gson = new Gson();
+
+    final ChessRoomManager chessRoomManager;
+    final SimpMessagingTemplate simpMessagingTemplate;
+
+    public GameController(ChessRoomManager chessRoomManager, SimpMessagingTemplate simpMessagingTemplate) {
+        this.chessRoomManager = chessRoomManager;
+        this.simpMessagingTemplate = simpMessagingTemplate;
+    }
 
     @GetMapping("/game")
     public String game() {

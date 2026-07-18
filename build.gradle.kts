@@ -6,7 +6,7 @@ plugins {
 
 group = "com.pijieh"
 
-version = ""
+version = "0.5"
 
 java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 
@@ -19,8 +19,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.google.code.gson:gson:2.13.1")
-    implementation("com.mchange:c3p0:0.11.0")
+    implementation("com.mchange:c3p0:0.14.1")
     implementation("org.xerial:sqlite-jdbc:3.50.3.0")
+    implementation("org.springframework.security:spring-security-core")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

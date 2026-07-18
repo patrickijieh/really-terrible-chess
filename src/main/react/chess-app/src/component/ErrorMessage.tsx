@@ -1,7 +1,7 @@
 import "../styles.css";
 
 const ErrorMessage = (props: { message: string }) => {
-    if (props.message.length < 1) {
+    if (!props.message || props.message.length < 1) {
         return <div>
             <p className="error-msg-empty">message</p>
         </div>;

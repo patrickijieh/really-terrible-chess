@@ -8,21 +8,21 @@ type NavProps = {
 }
 
 const Header = () => {
-
     return (
         <header className='header'>
             <div className='header-padding'></div>
             <div className='header-body'>
                 <div className='header-subsection header-title'>
-                    <h1>really terrible chess</h1>
+                    <h2>really terrible chess</h2>
                 </div>
-                <NavButton to='/' displayName='Home' />
+                <NavButton to='/' displayName='home' />
                 <a className="header-subsection" href="/rules.txt" target='_blank'>
                     <div className="header-button">
-                        <h2>Ruleset</h2>
+                        <h3>ruleset</h3>
                     </div>
                 </a>
-
+                <NavButton to='/login' displayName='login' />
+                <NavButton to='/signup' displayName='sign up' />
             </div>
             <div className='header-padding'></div>
         </header>
@@ -35,9 +35,9 @@ const NavButton = ({ to, displayName }: NavProps) => {
         <>
             <div className='header-subsection'>
                 <NavLink to={to} className="header-button">
-                    <h2>
+                    <h3>
                         {displayName}
-                    </h2>
+                    </h3>
                 </NavLink>
             </div>
         </>

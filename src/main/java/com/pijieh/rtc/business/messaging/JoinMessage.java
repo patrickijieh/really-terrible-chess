@@ -2,14 +2,11 @@ package com.pijieh.rtc.business.messaging;
 
 import com.pijieh.rtc.business.models.Player;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Objects;
 
-@Value
-public class JoinMessage {
-    @NonNull
-    String gameId;
-
-    @NonNull
-    Player[] players;
+public record JoinMessage(String gameId, Player[] players) {
+    public JoinMessage {
+        Objects.requireNonNull(gameId);
+        Objects.requireNonNull(players);
+    }
 }

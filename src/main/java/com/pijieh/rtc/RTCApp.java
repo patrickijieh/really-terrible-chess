@@ -1,5 +1,6 @@
 package com.pijieh.rtc;
 
+import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import com.pijieh.rtc.business.ChessRoomManager;
 import com.pijieh.rtc.database.SQLDatabase;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Slf4j
 @SpringBootApplication
@@ -25,9 +27,21 @@ public class RTCApp {
     @Value("${chess.board.size}")
     int boardSize;
 
+    @Value("${database.driver}")
+    String databaseDriver;
+
+    @Value("${database.uri}")
+    String databaseUri;
+
+    @Value("${database.username}")
+    String databaseUsername;
+
+    @Value("${database.password}")
+    String databasePassword;
+
     @Bean
-    SQLDatabase database() throws SQLException {
-        return new SQLDatabase();
+    SQLDatabase database() throws PropertyVetoException, SQLException {
+        return new SQLDatabase(databaseDriver, databaseUri, databaseUsername, databasePassword);
     }
 
     @Bean
@@ -38,6 +52,11 @@ public class RTCApp {
     @Bean
     ChessEngine chessEngine() {
         return new ChessEngine(defaultBoardStr, boardSize);
+    }
+
+    @Bean
+    BCryptPasswordEncoder bcrypt() {
+        return new BCryptPasswordEncoder();
     }
 
     public static void main(String[] args) {

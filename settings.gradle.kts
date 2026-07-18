@@ -1,1 +1,1 @@
-rootProject.name = "rtc"
+rootProject.name = "rtc-server"
