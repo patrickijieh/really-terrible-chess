@@ -159,8 +159,7 @@ body {
 
 .form-body {
     display: flex;
-    padding-top: 75px;
-    padding-bottom: 75px;
+    padding: 75px 50px;
     align-items: center;
     width: 30%;
     flex-direction: column;
@@ -247,6 +246,13 @@ body {
 
 .error-msg {
     color: red;
+    text-align: start;
+    width: 200px;
+}
+
+.general-error-msg {
+    color: red;
+    width: 200px;
 }
 
 .error-msg-empty {

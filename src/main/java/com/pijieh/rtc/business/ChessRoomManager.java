@@ -32,8 +32,8 @@ public final class ChessRoomManager {
     public ChessRoomManager(int maxNumberOfChessGames) {
         this.maxGames = maxNumberOfChessGames;
         this.maxPlayers = maxNumberOfChessGames * 2;
-        this.chessGames = new ConcurrentHashMap<String, ChessGame>(maxGames);
-        this.players = new ConcurrentHashMap<String, Player>(maxPlayers);
+        this.chessGames = new ConcurrentHashMap<>(maxGames);
+        this.players = new ConcurrentHashMap<>(maxPlayers);
     }
 
     public Optional<String> createRoom(String ownerName) {
@@ -151,7 +151,7 @@ public final class ChessRoomManager {
         final ChessGame game = chessGames.get(gameId);
 
         if (game == null) {
-            return new String();
+            return "";
         }
 
         game.setGameState(GameState.NORMAL);

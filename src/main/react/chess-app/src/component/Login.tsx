@@ -2,9 +2,9 @@ import "../styles.css";
 import GenericForm from "./GenericForm";
 import Header from "./Header";
 import {UsernameValidator, PasswordValidator} from "./validators.ts";
-import {InputType, SingleValidator, type FormItem, type IdMap} from "./types";
+import {InputType, SingleValidator, type FormItem, type IdMap, type ServerResponse} from "./types";
 
-const request = async (state: IdMap): Promise<void> => {
+const sendLoginRequest = async (state: IdMap): Promise<ServerResponse> => {
     const response = await fetch("/login", {
         method: "POST",
         headers: {
@@ -16,11 +16,21 @@ const request = async (state: IdMap): Promise<void> => {
         })
     });
 
-    const json = await response.json();
-    console.log(json);
+    if (!response.ok) {
+        return {
+            ok: response.ok,
+            message: "invalid input"
+        }
+    }
+
+
+    return {
+        ok: response.ok
+    };
 }
 
 const LoginPage = () => {
+    document.title = "Really Terrible Chess - Login";
     const formItems: FormItem[] = [
         {
             id: "username",
@@ -41,7 +51,10 @@ const LoginPage = () => {
     return (
         <>
             <Header />
-            <GenericForm formItems={formItems} sendRequest={request} />
+            <div className="content">
+                <h1>Really Terrible Chess - Login</h1>
+                <GenericForm formItems={formItems} sendRequest={sendLoginRequest} />
+            </div>
         </>
     );
 };

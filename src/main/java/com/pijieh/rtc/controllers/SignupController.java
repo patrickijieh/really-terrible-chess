@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.pijieh.rtc.business.models.forms.LoginForm;
 import com.pijieh.rtc.database.SQLDatabase;
+import com.pijieh.rtc.database.models.User;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,12 +24,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Slf4j
 @Controller
 public class SignupController {
-    private static final Gson gson = new Gson();
+    final Gson gson;
     final BCryptPasswordEncoder bcrypt;
     final SQLDatabase database;
-    public SignupController(BCryptPasswordEncoder bcrypt, SQLDatabase database) {
+    public SignupController(BCryptPasswordEncoder bcrypt, SQLDatabase database, Gson gson) {
         this.bcrypt = bcrypt;
         this.database = database;
+        this.gson = gson;
     }
 
     @GetMapping("/signup")
@@ -38,7 +40,7 @@ public class SignupController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> signupUser(@RequestBody LoginForm signupForm) {
-        if (isInvalidUsername(signupForm.username())) {
+        if (User.isInvalidUsername(signupForm.username())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
@@ -48,9 +50,5 @@ public class SignupController {
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    private boolean isInvalidUsername(String username) {
-        return username.length() < 4 || username.length() > 14;
     }
 }

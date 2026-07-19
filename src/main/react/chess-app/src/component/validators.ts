@@ -39,4 +39,17 @@ const ConfirmPasswordValidator = (passwords: string[]) => {
     }
 }
 
-export { UsernameValidator, PasswordValidator, ConfirmPasswordValidator};
+const GameIdValidator = (gameId: string) => {
+    if (gameId.length < 12 || gameId.length > 16) {
+        return {
+            valid: false,
+            msg: "game id is invalid!"
+        }
+    }
+
+    return {
+        valid: true
+    }
+}
+
+export { UsernameValidator, PasswordValidator, ConfirmPasswordValidator, GameIdValidator};

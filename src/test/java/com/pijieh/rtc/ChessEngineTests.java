@@ -3,17 +3,21 @@ package com.pijieh.rtc;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.pijieh.rtc.database.SQLDatabase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.pijieh.rtc.business.ChessEngine;
 import com.pijieh.rtc.business.models.ChessGame.GameState;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 class ChessEngineTests {
-
     ChessEngine engine;
+
+    @MockitoBean
+    SQLDatabase database;
 
     @BeforeEach
     void setup() {

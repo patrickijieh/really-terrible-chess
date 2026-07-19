@@ -9,14 +9,14 @@ import com.pijieh.rtc.business.models.ChessPiece.PieceType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ChessEngine {
+public final class ChessEngine {
     enum Castle {
         NONE,
         KINGSIDE,
         QUEENSIDE
     };
 
-    final static String PROMOTION_REGEX = "\\([N,R,B,Q]\\)";
+    final static String PROMOTION_REGEX = "\\([NRBQ]\\)";
     final static int MAX_MOVE_COMMAND_LENGTH = 11;
 
     private final int boardSize;
@@ -161,8 +161,8 @@ public class ChessEngine {
         return sb.toString();
     }
 
-    private MoveState makeEnPassantMove(ChessPiece[][] board, String moveStr, PieceType typ, boolean isWhite,
-            GameState currentState) {
+    private MoveState makeEnPassantMove(ChessPiece[][] board, String moveStr, PieceType typ,
+                                        boolean isWhite, GameState currentState) {
         if (typ != PieceType.PAWN) {
             return new MoveState(false, currentState, null);
         }
@@ -174,8 +174,8 @@ public class ChessEngine {
             return new MoveState(false, currentState, null);
         }
 
-        if (!validatePawnMove(board, oldPos.row(), oldPos.col(), newPos.row(), newPos.col(), isWhite,
-                true)) {
+        if (!validatePawnMove(board, oldPos.row(), oldPos.col(), newPos.row(), newPos.col(),
+                isWhite, true)) {
             return new MoveState(false, currentState, null);
         }
 
@@ -197,7 +197,8 @@ public class ChessEngine {
         return new MoveState(true, newState, null);
     }
 
-    private MoveState makeCastleMove(ChessPiece[][] board, boolean isWhite, Castle castleTyp, GameState currentState) {
+    private MoveState makeCastleMove(ChessPiece[][] board, boolean isWhite, Castle castleTyp,
+                                     GameState currentState) {
         if (!validateCastle(board, isWhite, castleTyp)) {
             return new MoveState(false, currentState, null);
         }
@@ -272,8 +273,8 @@ public class ChessEngine {
         return new MoveState(true, newState, null);
     }
 
-    private MoveState makeRegularMove(ChessPiece[][] board, String moveStr, PieceType typ, boolean pieceIsWhite,
-            GameState currentState) {
+    private MoveState makeRegularMove(ChessPiece[][] board, String moveStr, PieceType typ,
+                                      boolean pieceIsWhite, GameState currentState) {
         boolean isCapture = moveStr.contains("x");
         BoardPosition oldPos;
         BoardPosition newPos;
@@ -408,21 +409,25 @@ public class ChessEngine {
         for (int i = 1; i < rowDistance; i++) {
             if (directedNorth) {
                 if (directedWest) {
-                    if (board[row + i][col - i] != null && board[row + i][col - i].type() != PieceType.GHOST_PAWN) {
+                    if (board[row + i][col - i] != null
+                            && board[row + i][col - i].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row + i][col + i] != null && board[row + i][col + i].type() != PieceType.GHOST_PAWN) {
+                    if (board[row + i][col + i] != null
+                            && board[row + i][col + i].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
             } else {
                 if (directedWest) {
-                    if (board[row - i][col - i] != null && board[row - i][col - i].type() != PieceType.GHOST_PAWN) {
+                    if (board[row - i][col - i] != null
+                            && board[row - i][col - i].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row - i][col + i] != null && board[row - i][col + i].type() != PieceType.GHOST_PAWN) {
+                    if (board[row - i][col + i] != null
+                            && board[row - i][col + i].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
@@ -439,11 +444,13 @@ public class ChessEngine {
             int colDistance = Math.abs(col - newCol);
             for (int i = 1; i < colDistance; i++) {
                 if (directedWest) {
-                    if (board[row][col - i] != null && board[row][col - i].type() != PieceType.GHOST_PAWN) {
+                    if (board[row][col - i] != null
+                            && board[row][col - i].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row][col + i] != null && board[row][col + i].type() != PieceType.GHOST_PAWN) {
+                    if (board[row][col + i] != null
+                            && board[row][col + i].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
@@ -454,11 +461,13 @@ public class ChessEngine {
             int rowDistance = Math.abs(row - newRow);
             for (int i = 1; i < rowDistance; i++) {
                 if (directedNorth) {
-                    if (board[row + i][col] != null && board[row + i][col].type() != PieceType.GHOST_PAWN) {
+                    if (board[row + i][col] != null
+                            && board[row + i][col].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 } else {
-                    if (board[row - i][col] != null && board[row - i][col].type() != PieceType.GHOST_PAWN) {
+                    if (board[row - i][col] != null
+                            && board[row - i][col].type() != PieceType.GHOST_PAWN) {
                         return false;
                     }
                 }
@@ -497,7 +506,8 @@ public class ChessEngine {
             } else if (!pieceIsWhite && col == newCol) {
                 if (row - newRow == 1) {
                     return true;
-                } else if (board[newRow][newCol] == null && row - newRow == 2 && row == boardSize - 2) {
+                } else if (board[newRow][newCol] == null && row - newRow == 2
+                        && row == boardSize - 2) {
                     return true;
                 }
             }
@@ -553,7 +563,8 @@ public class ChessEngine {
             }
 
             return validateRookMove(board, boardSize - 1, 4, boardSize - 1, newKingCol)
-                    && validateRookMove(board, boardSize - 1, rookCol, boardSize - 1, newKingCol + newRookRelativePos);
+                    && validateRookMove(board, boardSize - 1, rookCol, boardSize - 1,
+                    newKingCol + newRookRelativePos);
         }
     }
 
@@ -576,6 +587,10 @@ public class ChessEngine {
             }
         }
 
+        // if one of the kings is null, we have big problems
+        assert whiteKing != null;
+        assert blackKing != null;
+
         final boolean whiteCanBeTaken = kingCanBeTaken(board, whiteKing, true);
         final boolean blackCanBeTaken = kingCanBeTaken(board, blackKing, false);
         if (whiteCanBeTaken && blackCanBeTaken) {
@@ -589,7 +604,8 @@ public class ChessEngine {
         return GameState.NORMAL;
     }
 
-    private boolean kingCanBeTaken(ChessPiece[][] board, BoardPosition kingPos, boolean kingIsWhite) {
+    private boolean kingCanBeTaken(ChessPiece[][] board, BoardPosition kingPos,
+                                   boolean kingIsWhite) {
         final int kingRow = kingPos.row();
         final int kingCol = kingPos.col();
         boolean north = true;
@@ -770,7 +786,8 @@ public class ChessEngine {
         return false;
     }
 
-    private boolean validateCardinalMovesCanCapture(ChessPiece[][] board, int row, int col, int kingRow, int kingCol) {
+    private boolean validateCardinalMovesCanCapture(ChessPiece[][] board, int row, int col,
+                                                    int kingRow, int kingCol) {
         return switch (board[row][col].type()) {
             case ROOK -> validateRookMove(board, row, col, kingRow, kingCol);
             case QUEEN -> validateQueenMove(board, row, col, kingRow, kingCol);
@@ -779,9 +796,11 @@ public class ChessEngine {
         };
     }
 
-    private boolean validateDiagonalMovesCanCapture(ChessPiece[][] board, int row, int col, int kingRow, int kingCol) {
+    private boolean validateDiagonalMovesCanCapture(ChessPiece[][] board, int row, int col,
+                                                    int kingRow, int kingCol) {
         return switch (board[row][col].type()) {
-            case PAWN -> validatePawnMove(board, row, col, kingRow, kingCol, board[row][col].isWhite(), true);
+            case PAWN -> validatePawnMove(board, row, col, kingRow, kingCol,
+                    board[row][col].isWhite(), true);
             case BISHOP -> validateBishopMove(board, row, col, kingRow, kingCol);
             case QUEEN -> validateQueenMove(board, row, col, kingRow, kingCol);
             case KING -> validateKingMove(board, row, col, kingRow, kingCol);

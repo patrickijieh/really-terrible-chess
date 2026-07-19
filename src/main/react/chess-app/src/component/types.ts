@@ -11,6 +11,11 @@ type FormItem = {
     validator: SingleValidator | CompoundValidator
 };
 
+type ServerResponse = {
+    ok: boolean,
+    message?: string
+}
+
 interface IdMap {
     [key: string]: string
 }
@@ -31,4 +36,4 @@ class CompoundValidator {
     }
 }
 
-export { InputType, SingleValidator, CompoundValidator, type FormItem, type IdMap };
+export { InputType, SingleValidator, CompoundValidator, type FormItem, type IdMap, type ServerResponse };

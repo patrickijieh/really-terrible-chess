@@ -23,16 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 public class ChessMoveController {
-    private static final Gson gson = new Gson();
-
+    final Gson gson;
     final ChessRoomManager chessRoomManager;
     final ChessEngine chessEngine;
     final SimpMessagingTemplate simpMessagingTemplate;
 
-    public ChessMoveController(ChessRoomManager chessRoomManager, ChessEngine chessEngine, SimpMessagingTemplate simpMessagingTemplate) {
+    public ChessMoveController(ChessRoomManager chessRoomManager, ChessEngine chessEngine,
+                               SimpMessagingTemplate simpMessagingTemplate, Gson gson) {
         this.chessRoomManager = chessRoomManager;
         this.chessEngine = chessEngine;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.gson = gson;
     }
 
     @MessageMapping("/send-move/{id}")

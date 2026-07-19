@@ -3,6 +3,7 @@ package com.pijieh.rtc.controllers;
 import java.util.Map;
 import java.util.Optional;
 
+import com.pijieh.rtc.database.models.User;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,11 +24,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Slf4j
 @Controller
 public class RoomController {
-    private static final Gson gson = new Gson();
+    final Gson gson;
     final ChessRoomManager chessRoomManager;
 
-    public RoomController(ChessRoomManager chessRoomManager) {
+    public RoomController(ChessRoomManager chessRoomManager, Gson gson) {
         this.chessRoomManager = chessRoomManager;
+        this.gson = gson;
     }
 
     @GetMapping("/create")
@@ -47,7 +49,7 @@ public class RoomController {
 
         String username = createForm.username();
 
-        if (isInvalidUsername(username)) {
+        if (User.isInvalidUsername(username)) {
             final String body = gson.toJson(Map.of("error", "username does not meet criteria"));
             return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
         }
@@ -69,7 +71,7 @@ public class RoomController {
 
         String username = joinForm.username();
 
-        if (isInvalidUsername(username)) {
+        if (User.isInvalidUsername(username)) {
             final String body = gson.toJson(Map.of("error", "username does not meet criteria"));
             return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
         }
@@ -84,9 +86,5 @@ public class RoomController {
 
         final String body = gson.toJson(Map.of("gameId", gameId.get()));
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
-    }
-
-    private boolean isInvalidUsername(String username) {
-        return username.length() < 4 || username.length() > 14;
     }
 }

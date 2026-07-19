@@ -1,84 +1,65 @@
 import "../styles.css";
-import { useState, type ChangeEvent } from "react";
 import Header from "./Header";
-import ErrorMessage from "./ErrorMessage";
+import {type FormItem, type IdMap, InputType, type ServerResponse, SingleValidator} from "./types.ts";
+import {GameIdValidator, UsernameValidator} from "./validators.ts";
+import GenericForm from "./GenericForm.tsx";
+
+const sendRoomJoinRequest = async (state: IdMap): Promise<ServerResponse> => {
+    const response = await fetch("/join", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            "username": state.username,
+            "gameId": state.gameId
+        })
+    });
+
+    if (!response.ok) {
+        return {
+            ok: response.ok,
+            message: "invalid input."
+        };
+    }
+
+    let data: { gameId: string };
+    try {
+        data = await response.json();
+    } catch (err) {
+        return {
+            ok: response.ok,
+            message: "invalid input."
+        };
+    }
+
+    localStorage.setItem("gameId", data.gameId);
+    localStorage.setItem("username", state.username);
+
+    window.location.href = "./game";
+    return {
+        ok: response.ok
+    }
+}
 
 const JoinRoom = () => {
     document.title = "Really Terrible Chess - Join Room";
-
-    const [state, setState] = useState({
-        username: "",
-        gameId: ""
-    });
-    const [errorMsgs, setErrorMsgs] = useState({
-        username: "",
-        gameId: "",
-        form: ""
-    });
-
-    const sendRoomJoinRequest = async (): Promise<void> => {
-        let error = false;
-        let newMsgs = {
-            username: "",
-            gameId: "",
-            form: ""
-        };
-
-        if (state.username.length < 3 || state.username.length > 15) {
-            newMsgs.username = "username must be between 3 and 15 characters long.";
-            error = true;
-        }
-
-        if (state.gameId.length < 12 || state.gameId.length > 16) {
-            newMsgs.gameId = "game ID must be a valid ID.";
-            error = true;
-        }
-
-        if (error) {
-            setErrorMsgs({
-                ...newMsgs
-            });
-            return;
-        }
-
-        const response = await fetch("/join", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                "username": state.username,
-                "gameId": state.gameId
-            })
-        });
-
-        let data: { gameId: string };
-        try {
-            data = await response.json();
-        } catch (err) {
-            setErrorMsgs({
-                ...errorMsgs,
-                form: "invalid input."
-            });
-            return;
-        }
-        localStorage.setItem("gameId", data.gameId);
-        localStorage.setItem("username", state.username);
-
-        window.location.href = "./game";
-    }
-
-    const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setState({
-            ...state,
-            [event.target.id]: event.target.value
-        });
-        setErrorMsgs({
-            ...errorMsgs,
-            [event.target.id]: "",
-            form: ""
-        });
-    }
+    const formItems: FormItem[] = [
+        {
+            id: "username",
+            title: "username",
+            placeholder: "username",
+            inputType: InputType.TEXT,
+            validator: new SingleValidator(UsernameValidator)
+        },
+        {
+            id: "gameId",
+            title: "game id",
+            placeholder: "game id",
+            inputType: InputType.TEXT,
+            validator: new SingleValidator(GameIdValidator)
+        },
+    ];
 
     return (
         <>
@@ -86,48 +67,7 @@ const JoinRoom = () => {
             <div className="content">
                 <h1>Really Terrible Chess - Join Room</h1>
                 <h3>Join Another Room</h3>
-                <section className="form">
-                    <div className="form-body">
-                        <div className="form-group">
-                            <h4 className="form-label">
-                                Your username
-                            </h4>
-                            <div className="form-item">
-                                <input type="text" name="username" id="username" className="form-input"
-                                    value={state.username}
-                                    onKeyUp={(event) => {
-                                        if (event.key === "Enter") { sendRoomJoinRequest() }
-                                    }}
-                                    onChange={(event) =>
-                                        handleFormChange(event)}
-                                    placeholder="Enter your name" />
-                            </div>
-                        </div>
-                        <ErrorMessage message={errorMsgs.username} />
-                        <div className="form-group">
-                            <h4 className="form-label">
-                                Game ID
-                            </h4>
-                            <div className="form-item">
-                                <input type="text" name="gameId" id="gameId" className="form-input"
-                                    value={state.gameId}
-                                    onKeyUp={(event) => {
-                                        if (event.key === "Enter") { sendRoomJoinRequest() }
-                                    }}
-                                    onChange={(event) =>
-                                        handleFormChange(event)}
-                                    placeholder="Enter the game ID" />
-                            </div>
-                        </div>
-                        <ErrorMessage message={errorMsgs.gameId} />
-                        <button
-                            className="common-button btn"
-                            onClick={(_e) => sendRoomJoinRequest()}>
-                            Join Room!
-                        </button>
-                        <ErrorMessage message={errorMsgs.form} />
-                    </div>
-                </section>
+                <GenericForm formItems={formItems} sendRequest={sendRoomJoinRequest} />
             </div>
         </>
     );

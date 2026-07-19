@@ -3,6 +3,7 @@ package com.pijieh.rtc;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -57,6 +58,11 @@ public class RTCApp {
     @Bean
     BCryptPasswordEncoder bcrypt() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    Gson gson() {
+        return new Gson();
     }
 
     public static void main(String[] args) {

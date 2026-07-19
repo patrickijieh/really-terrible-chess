@@ -2,9 +2,9 @@ import "../styles.css";
 import Header from "./Header";
 import GenericForm from "./GenericForm";
 import {UsernameValidator, PasswordValidator, ConfirmPasswordValidator} from "./validators.ts";
-import { CompoundValidator, InputType, SingleValidator, type FormItem, type IdMap } from "./types";
+import {CompoundValidator, InputType, SingleValidator, type FormItem, type IdMap, type ServerResponse} from "./types";
 
-const request = async (state: IdMap): Promise<void> => {
+const sendSignupRequest = async (state: IdMap): Promise<ServerResponse> => {
     const response = await fetch("/signup", {
         method: "POST",
         headers: {
@@ -15,9 +15,17 @@ const request = async (state: IdMap): Promise<void> => {
             "password": state.password
         })
     });
-    if (response.ok) {
-        console.log("ok");
+
+    if (!response.ok) {
+        return {
+            ok: response.ok,
+            message: "invalid input"
+        }
     }
+
+    return {
+        ok: response.ok
+    };
 }
 
 const SignupPage = () => {
@@ -39,7 +47,7 @@ const SignupPage = () => {
         {
             id: "password-confirm",
             title: "confirm password",
-            placeholder: "confirm password",
+            placeholder: "password",
             inputType: InputType.PASSWORD,
             validator: new CompoundValidator(["password", "password-confirm"], ConfirmPasswordValidator)
         }
@@ -48,7 +56,10 @@ const SignupPage = () => {
     return (
         <>
             <Header />
-            <GenericForm formItems={formItems} sendRequest={request} />
+            <div className="content">
+                <h1>Really Terrible Chess - Sign Up</h1>
+                <GenericForm formItems={formItems} sendRequest={sendSignupRequest} />
+            </div>
         </>
     );
 };

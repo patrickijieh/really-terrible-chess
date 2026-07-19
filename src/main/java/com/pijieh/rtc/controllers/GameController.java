@@ -22,14 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 public class GameController {
-    private static final Gson gson = new Gson();
-
+    final Gson gson;
     final ChessRoomManager chessRoomManager;
     final SimpMessagingTemplate simpMessagingTemplate;
 
-    public GameController(ChessRoomManager chessRoomManager, SimpMessagingTemplate simpMessagingTemplate) {
+    public GameController(ChessRoomManager chessRoomManager,
+                          SimpMessagingTemplate simpMessagingTemplate, Gson gson) {
         this.chessRoomManager = chessRoomManager;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.gson = gson;
     }
 
     @GetMapping("/game")

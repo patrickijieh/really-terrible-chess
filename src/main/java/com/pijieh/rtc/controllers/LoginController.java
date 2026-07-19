@@ -24,12 +24,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Slf4j
 @Controller
 public class LoginController {
-    private static final Gson gson = new Gson();
+    final Gson gson;
     final BCryptPasswordEncoder bcrypt;
     final SQLDatabase database;
-    public LoginController(BCryptPasswordEncoder bcrypt, SQLDatabase database) {
+    public LoginController(BCryptPasswordEncoder bcrypt, SQLDatabase database, Gson gson) {
         this.bcrypt = bcrypt;
         this.database = database;
+        this.gson = gson;
     }
 
     @GetMapping("/login")
@@ -39,7 +40,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody LoginForm loginForm) {
-        if (isInvalidUsername(loginForm.username())) {
+        if (User.isInvalidUsername(loginForm.username())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
@@ -50,10 +51,7 @@ public class LoginController {
         if (!bcrypt.matches(loginForm.password(), user.get().password())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
 
-    private boolean isInvalidUsername(String username) {
-        return username.length() < 4 || username.length() > 14;
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

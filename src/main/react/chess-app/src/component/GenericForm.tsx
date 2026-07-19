@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent } from "react";
 import "../styles.css";
 import ErrorMessage from "./ErrorMessage";
-import { InputType, SingleValidator, type FormItem } from "./types";
+import {InputType, SingleValidator, type FormItem, type ServerResponse} from "./types";
 
 interface IdMap {
     [key: string]: string
@@ -9,7 +9,7 @@ interface IdMap {
 
 export type GenericFormProps = {
     formItems: FormItem[],
-    sendRequest: (state: IdMap) => Promise<void>
+    sendRequest: (state: IdMap) => Promise<ServerResponse>
 };
 
 const GenericForm = (props: GenericFormProps) => {
@@ -81,12 +81,19 @@ const GenericForm = (props: GenericFormProps) => {
         });
 
         if (canSendRequest) {
-            await props.sendRequest(state);
-        } else {
-            setErrorMsgs({
-                ...newErrors
-            });
+            const res: ServerResponse = await props.sendRequest(state);
+            if (res.ok) {
+                return;
+            }
+            newErrors = {
+                ...newErrors,
+                form: res.message!
+            }
         }
+
+        setErrorMsgs({
+            ...newErrors
+        });
     }
 
     const inputTypeToString = (typ: InputType) => {
@@ -117,7 +124,7 @@ const GenericForm = (props: GenericFormProps) => {
 
                     </div>
                 </div>
-                <ErrorMessage message={errorMsgs[itm.id]} />
+                <ErrorMessage message={errorMsgs[itm.id]} isGeneralError={false} />
             </div>
         )}
     </>;
@@ -131,7 +138,7 @@ const GenericForm = (props: GenericFormProps) => {
                     onClick={(_e) => { validateAndSubmit() }}>
                     Submit
                 </button>
-                <ErrorMessage message={errorMsgs.form} />
+                <ErrorMessage message={errorMsgs.form} isGeneralError={true} />
             </div>
         </section>
     );

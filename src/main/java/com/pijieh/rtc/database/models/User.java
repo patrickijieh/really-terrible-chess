@@ -10,4 +10,8 @@ public record User(long id, String username, String password, int wins, int loss
         Objects.requireNonNull(password);
         Objects.requireNonNull(creationDate);
     }
+
+    public static boolean isInvalidUsername(String name) {
+        return name.length() < 3 || name.length() > 15;
+    }
 }

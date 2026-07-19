@@ -49,7 +49,7 @@ public class ChessGame {
     }
 
     public boolean isPlayerOneConnected() {
-        return playerOne != null && playerOne.getSocketSessionId() != null;
+        return playerOne.getSocketSessionId() != null;
     }
 
     public boolean isPlayerTwoConnected() {

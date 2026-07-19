@@ -32,6 +32,7 @@ public final class SQLDatabase {
         cpds.setPassword(databasePassword);
         dataSource = cpds;
         testConnection();
+        initTables();
     }
 
     private Connection getConnection() throws SQLException {
@@ -39,9 +40,37 @@ public final class SQLDatabase {
     }
 
     private void testConnection() throws SQLException {
-        try (Connection conn = getConnection();) {
-        }
+        Connection conn = getConnection();
         log.info("Successfully fulfilled connection to RTC database.");
+    }
+
+    private void initTables() throws SQLException {
+        Connection conn = getConnection();
+        PreparedStatement usersTableStmt = conn.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS users (
+                id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                username varchar(20) NOT NULL CONSTRAINT must_be_unique UNIQUE,
+                password varchar NOT NULL,
+                wins int,
+                losses int,
+                creation_date timestamptz NOT NULL
+            )
+            """);
+        usersTableStmt.execute();
+
+        PreparedStatement gamesTableStmt = conn.prepareStatement("""
+            CREATE TABLE IF NOT EXISTS chess_games (
+                game_id varchar PRIMARY KEY,
+                owner_username varchar(20) NOT NULL,
+                owner_id bigint REFERENCES users (id),
+                opponent_username varchar(20),
+                opponent_id bigint REFERENCES users (id),
+                finished boolean
+            )
+            """);
+        gamesTableStmt.execute();
+
+        log.info("Successfully set up RTC database tables.");
     }
 
     public boolean createChessGame(String gameId, String ownerUsername) {
