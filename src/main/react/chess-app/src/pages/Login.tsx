@@ -1,8 +1,8 @@
 import "../styles.css";
-import GenericForm from "./GenericForm";
-import Header from "./Header";
-import {UsernameValidator, PasswordValidator} from "./validators.ts";
-import {InputType, SingleValidator, type FormItem, type IdMap, type ServerResponse} from "./types";
+import GenericForm from "../component/GenericForm.tsx";
+import Header from "../component/Header.tsx";
+import {UsernameValidator, PasswordValidator} from "../component/validators.ts";
+import {InputType, SingleValidator, type FormItem, type IdMap, type ServerResponse} from "../component/types.ts";
 
 const sendLoginRequest = async (state: IdMap): Promise<ServerResponse> => {
     const response = await fetch("/login", {
@@ -23,7 +23,7 @@ const sendLoginRequest = async (state: IdMap): Promise<ServerResponse> => {
         }
     }
 
-
+    window.location.assign("/");
     return {
         ok: response.ok
     };
@@ -50,7 +50,7 @@ const LoginPage = () => {
 
     return (
         <>
-            <Header />
+            <Header home={false}/>
             <div className="content">
                 <h1>Really Terrible Chess - Login</h1>
                 <GenericForm formItems={formItems} sendRequest={sendLoginRequest} />

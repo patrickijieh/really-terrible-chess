@@ -14,7 +14,7 @@ public final class ChessEngine {
         NONE,
         KINGSIDE,
         QUEENSIDE
-    };
+    }
 
     final static String PROMOTION_REGEX = "\\([NRBQ]\\)";
     final static int MAX_MOVE_COMMAND_LENGTH = 11;
@@ -844,7 +844,7 @@ public final class ChessEngine {
 
     private BoardPosition convertStringToPosition(String pos) {
         if (pos.length() != 2) {
-            return null;
+            throw new RuntimeException("Cannot convert string position: " + pos);
         }
 
         final int row = Integer.parseInt(pos.substring(1, 2)) - 1;

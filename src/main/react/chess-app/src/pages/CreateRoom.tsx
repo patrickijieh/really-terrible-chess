@@ -1,8 +1,8 @@
 import "../styles.css";
-import Header from "./Header";
-import {type FormItem, type IdMap, InputType, type ServerResponse, SingleValidator} from "./types.ts";
-import {UsernameValidator} from "./validators.ts";
-import GenericForm from "./GenericForm.tsx";
+import Header from "../component/Header.tsx";
+import {type FormItem, type IdMap, InputType, type ServerResponse, SingleValidator} from "../component/types.ts";
+import {UsernameValidator} from "../component/validators.ts";
+import GenericForm from "../component/GenericForm.tsx";
 
 const sendRoomCreationRequest = async (state: IdMap): Promise<ServerResponse> => {
     const response = await fetch("/create", {
@@ -35,7 +35,7 @@ const sendRoomCreationRequest = async (state: IdMap): Promise<ServerResponse> =>
     localStorage.setItem("gameId", data.gameId);
     localStorage.setItem("username", state.username);
 
-    window.location.href = "./game";
+    window.location.assign( "/game");
     return {
         ok: response.ok
     }
@@ -55,7 +55,7 @@ const CreateRoom = () => {
 
     return (
         <>
-            <Header />
+            <Header home={true}/>
             <div className="content">
                 <h1>Really Terrible Chess - Create Room</h1>
                 <h3>Creating a new Room</h3>

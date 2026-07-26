@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import ChessGame from './pages/ChessGame.tsx';
+import Profile from "./pages/Profile.tsx";
 
 const rootEl = document.getElementById('body');
 if (rootEl) {
     const root = ReactDOM.createRoot(rootEl);
     root.render(
         <React.StrictMode>
-            <ChessGame />
+            <Profile />
         </React.StrictMode>,
     );
 }

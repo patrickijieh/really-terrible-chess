@@ -1,14 +1,14 @@
 import { NavLink } from 'react-router';
 
 import '../styles.css';
-import Header from './Header';
+import Header from '../component/Header.tsx';
 
 const Home = () => {
     document.title = "Really Terrible Chess - Home";
 
     return (
         <>
-            <Header />
+            <Header home={true}/>
             <div className="content">
                 <h1>welcome to really terrible chess!</h1>
                 <section className='home-actions'>

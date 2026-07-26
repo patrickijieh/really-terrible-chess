@@ -1,12 +1,12 @@
-import { WebSocketClient } from "../../WebSocketClient";
+import { WebSocketClient } from "../WebSocketClient.ts";
 import { useEffect, useState } from "react";
-import ChessBoard from "./Chessboard";
-import PlayerInformation from "../PlayerInformation";
-import chess1mp3 from "../../audio/chess1.mp3";
-import chess2mp3 from "../../audio/chess2.mp3";
-import chess3mp3 from "../../audio/chess3.mp3";
-import "../../styles.css";
-import GameOverModal from "../GameOverModal";
+import ChessBoard from "../component/chess/Chessboard.tsx";
+import PlayerInformation from "../component/PlayerInformation.tsx";
+import chess1mp3 from "../audio/chess1.mp3";
+import chess2mp3 from "../audio/chess2.mp3";
+import chess3mp3 from "../audio/chess3.mp3";
+import "../styles.css";
+import GameOverModal from "../component/GameOverModal.tsx";
 
 const ChessGame = () => {
     document.title = "Really Terrible Chess";

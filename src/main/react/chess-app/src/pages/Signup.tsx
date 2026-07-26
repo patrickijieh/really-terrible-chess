@@ -1,8 +1,8 @@
 import "../styles.css";
-import Header from "./Header";
-import GenericForm from "./GenericForm";
-import {UsernameValidator, PasswordValidator, ConfirmPasswordValidator} from "./validators.ts";
-import {CompoundValidator, InputType, SingleValidator, type FormItem, type IdMap, type ServerResponse} from "./types";
+import Header from "../component/Header.tsx";
+import GenericForm from "../component/GenericForm.tsx";
+import {UsernameValidator, PasswordValidator, ConfirmPasswordValidator} from "../component/validators.ts";
+import {CompoundValidator, InputType, SingleValidator, type FormItem, type IdMap, type ServerResponse} from "../component/types.ts";
 
 const sendSignupRequest = async (state: IdMap): Promise<ServerResponse> => {
     const response = await fetch("/signup", {
@@ -23,12 +23,14 @@ const sendSignupRequest = async (state: IdMap): Promise<ServerResponse> => {
         }
     }
 
+    window.location.assign("/");
     return {
         ok: response.ok
     };
 }
 
 const SignupPage = () => {
+    document.title = "Really Terrible Chess - Sign Up";
     const formItems: FormItem[] = [
         {
             id: "username",
@@ -55,7 +57,7 @@ const SignupPage = () => {
 
     return (
         <>
-            <Header />
+            <Header home={false}/>
             <div className="content">
                 <h1>Really Terrible Chess - Sign Up</h1>
                 <GenericForm formItems={formItems} sendRequest={sendSignupRequest} />

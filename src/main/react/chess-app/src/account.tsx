@@ -1,9 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router';
-import Home from './pages/Home.tsx';
-import CreateRoom from './pages/CreateRoom.tsx';
-import JoinRoom from './pages/JoinRoom.tsx';
 import SignupPage from './pages/Signup.tsx';
 import LoginPage from './pages/Login.tsx';
 
@@ -14,9 +11,6 @@ if (rootEl) {
         <React.StrictMode>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/create" element={<CreateRoom />} />
-                    <Route path="/join" element={<JoinRoom />} />
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/login" element={<LoginPage />} />
                 </Routes>

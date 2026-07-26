@@ -19,7 +19,9 @@ export default defineConfig({
     source: {
         entry: {
             index: "./src/index.tsx",
-            game: "./src/game.tsx"
+            game: "./src/game.tsx",
+            account: "./src/account.tsx",
+            profile: "./src/profile.tsx"
         },
     },
     html: {

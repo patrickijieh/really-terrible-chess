@@ -1,14 +1,13 @@
 package com.pijieh.rtc.controllers;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 
 import com.pijieh.rtc.business.models.forms.LoginForm;
 import com.pijieh.rtc.database.SQLDatabase;
 import com.pijieh.rtc.database.models.User;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -35,11 +34,14 @@ public class SignupController {
 
     @GetMapping("/signup")
     public String signup() {
-        return "html/index.html";
+        return "html/account.html";
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signupUser(@RequestBody LoginForm signupForm) {
+    public ResponseEntity<Void> signupUser(@RequestBody LoginForm signupForm,
+                                             HttpSession session) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.LOCATION, "/");
         if (User.isInvalidUsername(signupForm.username())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -49,6 +51,7 @@ public class SignupController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        session.setAttribute("username", signupForm.username());
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 }

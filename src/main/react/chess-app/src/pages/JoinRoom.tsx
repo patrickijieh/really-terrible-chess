@@ -1,8 +1,8 @@
 import "../styles.css";
-import Header from "./Header";
-import {type FormItem, type IdMap, InputType, type ServerResponse, SingleValidator} from "./types.ts";
-import {GameIdValidator, UsernameValidator} from "./validators.ts";
-import GenericForm from "./GenericForm.tsx";
+import Header from "../component/Header.tsx";
+import {type FormItem, type IdMap, InputType, type ServerResponse, SingleValidator} from "../component/types.ts";
+import {GameIdValidator, UsernameValidator} from "../component/validators.ts";
+import GenericForm from "../component/GenericForm.tsx";
 
 const sendRoomJoinRequest = async (state: IdMap): Promise<ServerResponse> => {
     const response = await fetch("/join", {
@@ -36,7 +36,7 @@ const sendRoomJoinRequest = async (state: IdMap): Promise<ServerResponse> => {
     localStorage.setItem("gameId", data.gameId);
     localStorage.setItem("username", state.username);
 
-    window.location.href = "./game";
+    window.location.assign( "/game");
     return {
         ok: response.ok
     }
@@ -63,7 +63,7 @@ const JoinRoom = () => {
 
     return (
         <>
-            <Header />
+            <Header home={true}/>
             <div className="content">
                 <h1>Really Terrible Chess - Join Room</h1>
                 <h3>Join Another Room</h3>

@@ -1,14 +1,13 @@
 package com.pijieh.rtc.controllers;
 
-import java.util.Map;
 import java.util.Optional;
 
 import com.pijieh.rtc.business.models.forms.LoginForm;
 import com.pijieh.rtc.database.SQLDatabase;
 import com.pijieh.rtc.database.models.User;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -35,11 +34,14 @@ public class LoginController {
 
     @GetMapping("/login")
     public String login() {
-        return "html/index.html";
+        return "html/account.html";
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody LoginForm loginForm) {
+    public ResponseEntity<Void> loginUser(@RequestBody LoginForm loginForm,
+                                            HttpSession session) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.LOCATION, "/");
         if (User.isInvalidUsername(loginForm.username())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -52,6 +54,7 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        session.setAttribute("username", loginForm.username());
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 }

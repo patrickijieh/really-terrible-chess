@@ -42,9 +42,9 @@ class WebSocketClient {
             this.stompClient_ = new Client();
         }
 
-        if (gameId !== undefined) { this.gameId_ = gameId };
-        if (username !== undefined) { this.username_ = username };
-        if (updateGameState !== undefined) { this.updateGameState = updateGameState };
+        if (gameId !== undefined) { this.gameId_ = gameId }
+        if (username !== undefined) { this.username_ = username }
+        if (updateGameState !== undefined) { this.updateGameState = updateGameState }
         this.opponentUsername_ = null;
 
         this.stompClient_ = Stomp.client(url!);
@@ -84,8 +84,8 @@ class WebSocketClient {
     }
 
     private onDisconnect() {
-        console.log("socket disconnected");
-        this.stompClient_.deactivate();
+        this.stompClient_.deactivate()
+            .then(() => console.log("socket disconnected."));
     }
 
     private onWsError(_event: Error) {

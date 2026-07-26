@@ -120,7 +120,11 @@ public final class ChessRoomManager {
             return;
         }
 
-        if (!database.chessGameExists(disconnectedPlayer.getGameId())) {
+        disconnectedPlayer.setSocketSessionId(null);
+        final ChessGame game = chessGames.get(disconnectedPlayer.getGameId());
+
+        if (!game.isPlayerOneConnected() && !game.isPlayerTwoConnected()) {
+            log.info("both players have disconnected from gameid={}; deleting.", game.getId());
             destroyGame(disconnectedPlayer.getGameId());
         }
 
@@ -182,6 +186,11 @@ public final class ChessRoomManager {
                 game.getGhostPiecePosition());
         if (!data.isValidMove()) {
             return Optional.empty();
+        }
+
+        if (game.getGameState() == GameState.FINISHED) {
+            String playerColor = game.isWhitesTurn() ? "w" : "b";
+            log.info("game with id={} finished, {} player won", gameId, playerColor);
         }
 
         game.setGameState(data.gameState());
